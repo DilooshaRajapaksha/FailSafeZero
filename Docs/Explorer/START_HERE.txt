@@ -1,0 +1,21 @@
+EXPLORER CHARACTER
+
+Files
+- Explorer_Final.blend: editable character, UVs, materials, deform rig and preview studio.
+- Explorer_Unity.fbx: character mesh and 22-bone rig; studio is excluded.
+- Explorer_BaseColor.png: shared 512 x 512 color atlas.
+- Explorer_Unity.fbm: exported texture copy used by the FBX.
+- Explorer_Preview.png and Explorer_Face.png: rendered previews.
+
+Unity
+1. Copy Explorer_Unity.fbx, Explorer_BaseColor.png and Explorer_Unity.fbm into an Assets folder together.
+2. Select the FBX. In Rig, choose Humanoid, then Create From This Model. Apply and use Configure to review the bone mapping.
+3. For URP or HDRP, create a material using your project's Lit shader and assign Explorer_BaseColor.png to Base Map/Base Color. Apply it to the character. Built-in pipeline can use Standard.
+4. The asset uses metres and includes a relaxed A pose. No animation clips, gameplay scripts, weapon, facial rig or hand-finger bones are included.
+5. Test your chosen animation clips and adjust skin weights if necessary, particularly at shoulders and hips. Unity itself was not available for an in-engine test.
+
+Blender
+The character is Explorer_Character. The hidden Explorer_Rig armature can be made visible from the Outliner for Pose Mode. The studio camera, lights and ground are only for preview renders.
+
+Design
+Original stylized rust-shirt explorer with khaki cargo shorts, dark brown ponytail, utility belt, twin thigh holsters, fingerless gloves, black laced boots and teal navigation badge. The reference was used for general proportions and styling; this is a simplified stylized interpretation rather than a match to the reference's realism.
