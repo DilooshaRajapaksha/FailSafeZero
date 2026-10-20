@@ -7,7 +7,7 @@ namespace FailSafeZero.Environment
     {
         public float minIntensity = 0.5f;
         public float maxIntensity = 3.0f;
-        public float pulseSpeed = 2.5f;
+        public float pulseSpeed = 2.6f;
 
         private Light pointLight;
 

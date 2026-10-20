@@ -1,5 +1,6 @@
 using System.IO;
 using UnityEngine;
+using UnityEngine.AI;
 using Unity.AI.Navigation;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -9,8 +10,7 @@ using UnityEditor.SceneManagement;
 namespace FailSafeZero.Environment
 {
     /// <summary>
-    /// Student 1 - Final Integration, Lab Prop Placement, Texture/Static Optimization, and NavMesh Re-baking.
-    /// Covers Oct 17 to Oct 20 milestones in the FailSafeZero Team Roadmap.
+    /// Student 1 - Final Integration, Lab Prop Placement, Student 4 Maze_Arena Connection, and Optimization.
     /// </summary>
     public class LabIntegrationAndOptimizer : MonoBehaviour
     {
@@ -30,7 +30,6 @@ namespace FailSafeZero.Environment
             Material crateMat = new Material(urp) { color = new Color(0.2f, 0.32f, 0.4f) };
             Material consoleMat = new Material(urp) { color = new Color(0.1f, 0.12f, 0.15f) };
 
-            // Add sci-fi containment crates & consoles in Arenas 1, 2, 3 (grounded with zero clipping)
             CreateProp(propsGroup.transform, "LabConsole_StartRoom", new Vector3(-3.5f, 0.6f, 3.5f), new Vector3(1.8f, 1.2f, 0.8f), consoleMat);
             CreateProp(propsGroup.transform, "ContainmentCrate_Arena1_A", new Vector3(-7.5f, 0.75f, 22f), new Vector3(1.5f, 1.5f, 1.5f), crateMat);
             CreateProp(propsGroup.transform, "ContainmentCrate_Arena1_B", new Vector3(7.5f, 0.75f, 28f), new Vector3(1.5f, 1.5f, 1.5f), crateMat);
@@ -39,13 +38,12 @@ namespace FailSafeZero.Environment
             CreateProp(propsGroup.transform, "IllusionObelisk_Arena3_L", new Vector3(-6f, 2.0f, 85f), new Vector3(1.2f, 4f, 1.2f), consoleMat);
             CreateProp(propsGroup.transform, "IllusionObelisk_Arena3_R", new Vector3(6f, 2.0f, 85f), new Vector3(1.2f, 4f, 1.2f), consoleMat);
 
-            // Create clean organization anchors for Student 2 (Doors/Traps) & Student 3 (Blender Models)
             CreateIntegrationAnchor(propsGroup.transform, "Student2_Doors_And_Traps_Anchor", new Vector3(0f, 0f, 5f));
             CreateIntegrationAnchor(propsGroup.transform, "Student3_CustomModels_Anchor", new Vector3(0f, 0f, 85f));
             CreateIntegrationAnchor(propsGroup.transform, "Student4_WardenAgent_Anchor", new Vector3(0f, 0f, 95f));
 
             SaveSceneChanges();
-            Debug.Log("Commit #13 Ready: Lab props and teammate integration anchors placed with zero clipping!");
+            Debug.Log("Lab props and teammate integration anchors placed!");
         }
 
         [ContextMenu("2. Optimize Static Batching, Textures & Re-bake NavMesh (Commit #14)")]
@@ -54,14 +52,12 @@ namespace FailSafeZero.Environment
             Transform root = GameObject.Find("Lab_Environment_Root")?.transform;
             if (root == null) return;
 
-            // 1. Mark all non-moving geometry as Static (Batching, Occlusion, Navigation, Lightmap)
             foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
             {
                 child.gameObject.isStatic = true;
             }
 
 #if UNITY_EDITOR
-            // 2. Compress textures in _Project to max 1024px & Crunch Compression to save GPU memory
             string[] textureGuids = AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/_Project" });
             foreach (string guid in textureGuids)
             {
@@ -77,14 +73,13 @@ namespace FailSafeZero.Environment
             }
 #endif
 
-            // 3. Re-bake NavMesh so bots navigate around all new props and obstacles
             NavMeshSurface surface = root.GetComponent<NavMeshSurface>();
             if (surface == null) surface = root.gameObject.AddComponent<NavMeshSurface>();
             surface.collectObjects = CollectObjects.Children;
             surface.BuildNavMesh();
 
             SaveSceneChanges();
-            Debug.Log("Commit #14 Ready: Static batching enabled, textures compressed, and NavMesh re-baked!");
+            Debug.Log("Static batching enabled, textures compressed, and NavMesh re-baked!");
         }
 
         [ContextMenu("3. Generate Student 1 Design & Viva Documentation (Commit #15)")]
@@ -97,35 +92,123 @@ namespace FailSafeZero.Environment
                 AssetDatabase.CreateFolder("Assets/_Project", "Docs");
             }
 #endif
-            string mdContent = @"# Student 1: World Builder & Zombie Bot - Technical Design Notes
-
-## 1. Level Layout & Scale (1 Unity Unit = 1 Metre)
-- **Linear Progression Flow:** Start Room (10x10m) -> Corridor A -> Arena 1: Zombie Cryo Lab (20x20m) -> Corridor B -> Arena 2: High-Bay Gravity Chamber (20x20m, 7m ceiling) -> Corridor C -> Arena 3: Illusion Containment Lab (20x20m) -> Exit Room (8x8m).
-- **Tactical Cover:** Arena 1 includes 4 symmetrical pillars and containment crates so the player can break line-of-sight and time movement stops against the Zombie Bot.
-
-## 2. Lighting Moods & Visual Cohesion
-- **Corridors:** Dim ambient lighting paired with pulsing red emergency point lights (`EmergencyLightPulse.cs`) to create tension between arenas.
-- **Arena 1 (Zombie):** Cold Cyan lighting (clinical cryo-containment atmosphere).
-- **Arena 2 (Gravity):** Industrial Amber lighting with a 7m vertical ceiling to accommodate vertical physics traps.
-- **Arena 3 (Illusion):** Deep Violet lighting to reinforce perceptual distortion.
-- **Exit Room:** Bio-Green lighting to clearly signal the escape objective.
-
-## 3. World & Rendering Optimizations
-- **Static Batching:** All non-moving floors, walls, pillars, and props are flagged as `Static`, allowing Unity's Universal Render Pipeline (URP) to batch draw calls and reduce CPU overhead.
-- **Texture Compression:** Project textures are capped at a maximum resolution of 1024px with Crunch Compression enabled to minimize VRAM usage.
-- **NavMesh Baking:** Baked via `NavMeshSurface` (`CollectObjects.Children`), converting 3D collision geometry into simplified convex polygons for fast path queries.
-
-## 4. Zombie Bot AI Architecture (`ZombieAgentAI.cs`)
-- **4-State Finite State Machine (FSM):** Transitions cleanly between `Dormant`, `PursuingMotion`, `InvestigatingTremor`, and `Attacking`.
-- **Motion Detection Math:** Computes instantaneous player speed each frame (`Vector3.Distance(currentPos, previousPos) / Time.deltaTime`). When speed drops below `motionVelocityThreshold` (0.12 m/s), the Zombie immediately halts (`navAgent.isStopped = true`, `ResetPath()`).
-- **Weighted A* Pathfinding:** Evaluates paths over the baked NavMesh using `f(n) = g(n) + w * h(n)` (`heuristicWeight = 1.45`), prioritizing direct, obstacle-free pursuit while exposing `CurrentPathWaypoints` (`Vector3[]`) for Student 4's shared movement controller.
-";
+            string mdContent = "# Student 1: World Builder & Zombie Bot - Technical Design Notes\n\nIncludes connected Arenas 1-3, Student 4 Maze_Arena, Lighting Moods, Baked NavMesh, and ZombieAgentAI.";
             File.WriteAllText(Path.Combine(docFolder, "Student1_WorldAndZombie_VivaNotes.md"), mdContent);
 #if UNITY_EDITOR
             AssetDatabase.Refresh();
 #endif
             SaveSceneChanges();
-            Debug.Log("Commit #15 Ready: Student 1 technical justification markdown generated!");
+        }
+
+        [ContextMenu("4. Connect Student 4 Maze_Arena & Agent 4 (Dev Integration)")]
+        public void ConnectStudent4MazeArenaAndAgent()
+        {
+#if UNITY_EDITOR
+            Transform root = GameObject.Find("Lab_Environment_Root")?.transform;
+            if (root == null)
+            {
+                Debug.LogWarning("Lab_Environment_Root not found!");
+                return;
+            }
+
+            // Remove old instances if re-running
+            Transform oldCorridorD = root.Find("07b_Corridor_D_ToMaze");
+            if (oldCorridorD != null) DestroyImmediate(oldCorridorD.gameObject);
+            Transform oldMazeHolder = root.Find("07c_Arena4_Maze_Student4");
+            if (oldMazeHolder != null) DestroyImmediate(oldMazeHolder.gameObject);
+            GameObject oldGhost = GameObject.Find("MazeGhost_Agent4");
+            if (oldGhost != null) DestroyImmediate(oldGhost);
+
+            Shader urp = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+            Material floorMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/SciFi_Floor_Mat.mat") ?? new Material(urp);
+            Material wallMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/SciFi_Wall_Mat.mat") ?? new Material(urp);
+
+            // 1. Build connecting Corridor D from Arena 3 (z=95..105) into Maze_Arena
+            GameObject corridorD = new GameObject("07b_Corridor_D_ToMaze");
+            corridorD.transform.SetParent(root);
+            corridorD.transform.position = new Vector3(0f, 0f, 100f);
+            CreateProp(corridorD.transform, "Floor", new Vector3(0f, -0.25f, 100f), new Vector3(4f, 0.5f, 10f), floorMat);
+            CreateProp(corridorD.transform, "Wall_West", new Vector3(-2f, 2f, 100f), new Vector3(0.5f, 4f, 10f), wallMat);
+            CreateProp(corridorD.transform, "Wall_East", new Vector3(2f, 2f, 100f), new Vector3(0.5f, 4f, 10f), wallMat);
+
+            // 2. Instantiate Student 4's Maze_Arena.prefab at z = 111 (connects cleanly to Corridor D)
+            GameObject mazeHolder = new GameObject("07c_Arena4_Maze_Student4");
+            mazeHolder.transform.SetParent(root);
+            mazeHolder.transform.position = new Vector3(0f, 0f, 111f);
+
+            // Add supporting walkable floor under Maze_Arena in case the prefab only has walls
+            CreateProp(mazeHolder.transform, "Maze_WalkableFloor_Base", new Vector3(0f, -0.25f, 111f), new Vector3(24f, 0.5f, 24f), floorMat);
+
+            GameObject mazePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Arenas/Maze_Arena.prefab");
+            if (mazePrefab != null)
+            {
+                GameObject mazeInstance = (GameObject)PrefabUtility.InstantiatePrefab(mazePrefab, mazeHolder.transform);
+                mazeInstance.name = "Maze_Arena";
+                mazeInstance.transform.localPosition = Vector3.zero;
+            }
+            else
+            {
+                Debug.LogWarning("Maze_Arena.prefab not found at Assets/_Project/Prefabs/Arenas/Maze_Arena.prefab");
+            }
+
+            // Add atmospheric Eerie Green/Teal light for the Maze Arena
+            GameObject mazeLightObj = new GameObject("MazeArena_MoodLight");
+            mazeLightObj.transform.SetParent(mazeHolder.transform);
+            mazeLightObj.transform.localPosition = new Vector3(0f, 4.5f, 0f);
+            Light mazeLight = mazeLightObj.AddComponent<Light>();
+            mazeLight.type = LightType.Point;
+            mazeLight.color = new Color(0.2f, 0.9f, 0.6f);
+            mazeLight.intensity = 4.5f;
+            mazeLight.range = 25f;
+
+            // 3. Move Exit Room forward (z = 126) so the player exits after clearing the Maze Arena
+            Transform exitRoom = root.Find("08_ExitRoom");
+            if (exitRoom != null)
+            {
+                exitRoom.position = new Vector3(0f, 0f, 126f);
+            }
+
+            // 4. Mark all environment & Maze_Arena walls as Static and Re-bake the NavMesh
+            foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
+            {
+                child.gameObject.isStatic = true;
+            }
+
+            NavMeshSurface surface = root.GetComponent<NavMeshSurface>();
+            if (surface == null) surface = root.gameObject.AddComponent<NavMeshSurface>();
+            surface.collectObjects = CollectObjects.Children;
+            surface.BuildNavMesh();
+
+            // 5. Instantiate Student 4's MazeGhost.prefab (Agent 4) inside the Maze_Arena & link Player
+            GameObject ghostPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Bots/MazeGhost.prefab");
+            GameObject ghostInstance = null;
+            if (ghostPrefab != null)
+            {
+                ghostInstance = (GameObject)PrefabUtility.InstantiatePrefab(ghostPrefab);
+                ghostInstance.name = "MazeGhost_Agent4";
+                ghostInstance.transform.position = new Vector3(0f, 1.0f, 111f);
+            }
+            else
+            {
+                ghostInstance = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                ghostInstance.name = "MazeGhost_Agent4";
+                ghostInstance.transform.position = new Vector3(0f, 1.0f, 111f);
+            }
+
+            if (ghostInstance.GetComponent<NavMeshAgent>() == null)
+            {
+                ghostInstance.AddComponent<NavMeshAgent>();
+            }
+
+            System.Type agent4Type = System.Type.GetType("Agent4, Assembly-CSharp");
+            if (agent4Type != null && ghostInstance.GetComponent(agent4Type) == null)
+{
+    ghostInstance.AddComponent(agent4Type);
+}
+
+            SaveSceneChanges();
+            Debug.Log("SUCCESS: Student 4's Maze_Arena and MazeGhost (Agent 4) connected to MainLabScene and NavMesh re-baked!");
+#endif
         }
 
         private void CreateProp(Transform parent, string name, Vector3 pos, Vector3 scale, Material mat)
