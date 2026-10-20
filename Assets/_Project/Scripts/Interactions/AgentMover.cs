@@ -55,7 +55,11 @@ public class AgentMover : MonoBehaviour
     {
         if (reachedEnd) return;
 
+        if (pathPoints == null || pathPoints.Count == 0 || pathIndex >= pathPoints.Count) return;
+
         Transform target = pathPoints[pathIndex];
+        if (target == null) return;
+
         Vector3 direction = (target.position - transform.position).normalized;
         direction.y = 0f;
 
@@ -89,18 +93,6 @@ public class AgentMover : MonoBehaviour
                 }
                 Debug.Log("Agent completed path");
             }
-        }
-    }
-
-    public void ResetPath()
-    {
-        pathIndex = 0;
-        reachedEnd = false;
-        if (rb != null) rb.linearVelocity = Vector3.zero;
-        if (anim != null)
-        {
-            anim.SetBool(isMovingParameter, false);
-            anim.SetFloat(speedParameter, 0f);
         }
     }
 }
