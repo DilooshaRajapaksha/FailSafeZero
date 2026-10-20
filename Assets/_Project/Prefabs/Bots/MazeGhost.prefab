@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 7330764467959057431}
   - component: {fileID: 5969843844414777864}
   - component: {fileID: 5442537710745062309}
+  - component: {fileID: 3324720150943891189}
   m_Layer: 0
   m_Name: MazeGhost
   m_TagString: Untagged
@@ -203,8 +204,27 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  speed: 3
+  normalSpeed: 6
+  slowedSpeed: 3
   turnSpeed: 5
   stoppingDistance: 0.5
   speedParameter: Speed
   isMovingParameter: IsMoving
+  isSlowed: 0
+--- !u!114 &3324720150943891189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4590298802559594422}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eba25339d3c8f174f9f2755173c130cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FailSafeZero.Core.EnemyHealth
+  maxHealth: 100
+  defeatDuration: 0.8
+  onDefeated:
+    m_PersistentCalls:
+      m_Calls: []
