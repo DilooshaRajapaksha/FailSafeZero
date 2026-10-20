@@ -28,7 +28,7 @@ namespace FailSafeZero.AI
         [Header("Weighted A* Heuristic Tuning")]
         [Range(1.0f, 3.0f)]
         public float heuristicWeight = 1.35f;
-        public float freezeReactionDelay = 0.08f;
+        public float freezeReactionDelay = 0.06f;
 
         [Header("Student 4 Integration (Shared Movement Controller)")]
         [Tooltip("Enable if Student 4's script moves the bot using CurrentPathWaypoints")]
