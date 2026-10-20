@@ -23,7 +23,7 @@ namespace FailSafeZero.AI
         public Transform playerTarget;
         public float detectionRadius = 22.0f;
         public float motionVelocityThreshold = 0.15f;
-        public float attackRange = 1.8f;
+        public float attackRange = 1.75f;
 
         [Header("Weighted A* Heuristic Tuning")]
         [Range(1.0f, 3.0f)]
