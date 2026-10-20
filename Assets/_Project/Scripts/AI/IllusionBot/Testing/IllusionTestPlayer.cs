@@ -1,3 +1,4 @@
+using FailSafeZero.Weapons;
 using UnityEngine;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
@@ -12,6 +13,9 @@ namespace FailSafeZero.AI.Illusion.Testing
     ///
     /// When the real player exists, delete this from the scene. The bot only needs
     /// an object tagged "Player".
+    ///
+    /// If a LabPistol (the custom gun) is under the camera, the gun does the shooting
+    /// and this script's invisible built-in shot is switched off.
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public class IllusionTestPlayer : MonoBehaviour, IDamageable
@@ -30,6 +34,7 @@ namespace FailSafeZero.AI.Illusion.Testing
         float health;
         Vector3 spawnPoint;
         string lastHitText = "";
+        LabPistol pistol;
 
         void Awake()
         {
@@ -38,6 +43,7 @@ namespace FailSafeZero.AI.Illusion.Testing
             {
                 playerCamera = GetComponentInChildren<Camera>();
             }
+            pistol = GetComponentInChildren<LabPistol>();
             health = maxHealth;
             spawnPoint = transform.position;
         }
@@ -70,7 +76,7 @@ namespace FailSafeZero.AI.Illusion.Testing
 
             // ---- shoot (hitscan from the centre of the screen)
             fireTimer -= dt;
-            if (ReadFire() && fireTimer <= 0f && playerCamera != null)
+            if (pistol == null && ReadFire() && fireTimer <= 0f && playerCamera != null)
             {
                 fireTimer = fireInterval;
                 Shoot();
@@ -123,7 +129,7 @@ namespace FailSafeZero.AI.Illusion.Testing
             float cy = Screen.height * 0.5f;
             GUI.Label(new Rect(cx - 5f, cy - 12f, 20f, 24f), "+");
             GUI.Label(new Rect(Screen.width - 230f, 10f, 220f, 22f), $"TEST PLAYER  HP {health:0}/{maxHealth:0}");
-            GUI.Label(new Rect(Screen.width - 230f, 32f, 220f, 22f), $"Last shot: {lastHitText}");
+            GUI.Label(new Rect(Screen.width - 230f, 32f, 220f, 22f), $"Last shot: {(pistol != null ? pistol.LastHitText : lastHitText)}");
         }
 
         // ------------------------------------------------------------ input (works with both input systems)
