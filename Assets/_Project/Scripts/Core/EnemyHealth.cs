@@ -28,6 +28,10 @@ namespace FailSafeZero.Core
         public float MaxHealth => maxHealth;
         public float Current { get; private set; }
         public bool IsDead { get; private set; }
+        public float Health01 => Current / maxHealth;
+
+        /// <summary>Set by an AI to create a weak moment (e.g. 2 = double damage while overheated).</summary>
+        public float DamageMultiplier { get; set; } = 1f;
 
         void Awake()
         {
@@ -41,7 +45,7 @@ namespace FailSafeZero.Core
                 return;
             }
 
-            Current = Mathf.Max(0f, Current - amount);
+            Current = Mathf.Max(0f, Current - amount * DamageMultiplier);
             if (Current <= 0f)
             {
                 Defeat();
