@@ -17,6 +17,7 @@ namespace FailSafeZero.Weapons
     ///   - a muzzle flash (light) at the Muzzle point from Blender
     ///   - a bullet tracer line from the muzzle to the hit point
     ///   - recoil kick that springs back smoothly
+    ///   - a crosshair with a red hit marker and shot spread feedback
     ///   - wall avoidance: near a wall the gun pulls back and lowers, so it never
     ///     sticks through the geometry (and cannot fire while pressed against it)
     ///
@@ -56,6 +57,15 @@ namespace FailSafeZero.Weapons
         [Tooltip("Show ammo and the last hit in the top-right corner.")]
         [SerializeField] bool showHud = true;
 
+        [Header("Crosshair")]
+        [SerializeField] bool showCrosshair = true;
+        [SerializeField] Color crosshairColor = new Color(0.55f, 0.9f, 1f, 0.9f);
+        [Tooltip("Colour of the cross for a moment after hitting an enemy.")]
+        [SerializeField] Color hitMarkerColor = new Color(1f, 0.25f, 0.25f, 1f);
+        [SerializeField] float crosshairSize = 9f;
+        [SerializeField] float crosshairGap = 4f;
+        [SerializeField] float crosshairThickness = 2f;
+
         Camera aimCamera;
         Transform muzzle;
         Light flash;
@@ -71,6 +81,8 @@ namespace FailSafeZero.Weapons
         float tracerTimer;
         float reloadTimer;
         int ammo;
+        float hitMarkerTimer;  // > 0 while the cross shows the "you hit something" colour
+        float spread;          // 0..1, the cross opens up after each shot and closes again
 
         public string LastHitText { get; private set; } = "";
         public bool IsReloading => reloadTimer > 0f;
@@ -151,6 +163,7 @@ namespace FailSafeZero.Weapons
         {
             fireTimer = fireInterval;
             ammo--;
+            spread = 1f;
             kick = 1f;
             flashTimer = 0.05f;
             if (flash != null) flash.enabled = true;
@@ -173,6 +186,7 @@ namespace FailSafeZero.Weapons
                 if (target != null)
                 {
                     target.ReceiveHit(damage, hit.point, shooter);
+                    hitMarkerTimer = 0.15f;
                     LastHitText = hit.collider.GetComponentInParent<IllusionMirage>() != null ? "MIRAGE (fake!)" : "HIT: " + hit.collider.transform.root.name;
                 }
                 else
@@ -198,6 +212,9 @@ namespace FailSafeZero.Weapons
 
         void UpdateEffects(float dt)
         {
+            if (hitMarkerTimer > 0f) hitMarkerTimer -= dt;
+            spread = Mathf.Lerp(spread, 0f, 1f - Mathf.Exp(-10f * dt));
+
             if (flashTimer > 0f)
             {
                 flashTimer -= dt;
@@ -290,6 +307,11 @@ namespace FailSafeZero.Weapons
 
         void OnGUI()
         {
+            if (showCrosshair && !IsBlockedByWall)
+            {
+                DrawCrosshair();
+            }
+
             if (!showHud)
             {
                 return;
@@ -297,6 +319,30 @@ namespace FailSafeZero.Weapons
 
             string ammoText = IsReloading ? "RELOADING..." : $"AMMO {ammo}/{magazineSize}   (R = reload)";
             GUI.Label(new Rect(Screen.width - 230f, 54f, 220f, 22f), ammoText);
+        }
+
+        /// <summary>
+        /// A 4-line cross in the centre of the screen. That is exactly where the bullet
+        /// ray goes, because Fire() shoots from the camera centre. It opens slightly
+        /// after each shot (recoil feedback) and flashes red on a hit (hit marker).
+        /// </summary>
+        void DrawCrosshair()
+        {
+            Texture2D tex = Texture2D.whiteTexture;
+            float cx = Screen.width * 0.5f;
+            float cy = Screen.height * 0.5f;
+            float gap = crosshairGap + 6f * spread;
+            float len = crosshairSize;
+            float t = crosshairThickness;
+
+            Color old = GUI.color;
+            GUI.color = hitMarkerTimer > 0f ? hitMarkerColor : crosshairColor;
+            GUI.DrawTexture(new Rect(cx - t * 0.5f, cy - gap - len, t, len), tex); // up
+            GUI.DrawTexture(new Rect(cx - t * 0.5f, cy + gap, t, len), tex);       // down
+            GUI.DrawTexture(new Rect(cx - gap - len, cy - t * 0.5f, len, t), tex); // left
+            GUI.DrawTexture(new Rect(cx + gap, cy - t * 0.5f, len, t), tex);       // right
+            GUI.DrawTexture(new Rect(cx - 1f, cy - 1f, 2f, 2f), tex);              // centre dot
+            GUI.color = old;
         }
 
         // ------------------------------------------------------------ input (works with both input systems)
