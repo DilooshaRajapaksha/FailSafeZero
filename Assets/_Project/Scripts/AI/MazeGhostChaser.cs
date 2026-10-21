@@ -2,11 +2,10 @@ using UnityEngine;
 using UnityEngine.AI;
 
 /// <summary>
-/// SE3062 Assignment - Agent 4
-/// Uses A* pathfinding via Unity NavMeshAgent
-/// Goes beyond basic uninformed search with decision-making architecture
+/// Maze Ghost Chaser - Agent 4 behavior for maze navigation
+/// A* pathfinding via Unity NavMeshAgent for chasing/patrolling in maze environment
 /// </summary>
-public class Agent4 : MonoBehaviour
+public class MazeGhostChaser : MonoBehaviour
 {
     [Header("References")]
     public Transform player; // Assign in Inspector or find via tag
@@ -27,7 +26,7 @@ public class Agent4 : MonoBehaviour
         
         navAgent.speed = patrolSpeed;
         navAgent.stoppingDistance = 1.0f;
-        navAgent.updateRotation = true;
+        navAgent.updateRotation = false;
     }
     
     void Start()

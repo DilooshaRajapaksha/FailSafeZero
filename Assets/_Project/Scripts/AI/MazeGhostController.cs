@@ -2,9 +2,9 @@ using UnityEngine;
 using UnityEngine.AI;
 
 /// <summary>
-/// Bot controller - handles slow effect and movement
+/// Maze Ghost Controller - handles slow effect and movement for maze ghost bot
 /// </summary>
-public class BotController : MonoBehaviour
+public class MazeGhostController : MonoBehaviour
 {
     [Header("Movement Settings")]
     public float startSpeed = 3.0f;      // Normal speed for bot
