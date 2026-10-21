@@ -14,6 +14,8 @@ GameObject:
   - component: {fileID: 7683557969793709937}
   - component: {fileID: 6040999236771209534}
   - component: {fileID: 9060515237989780771}
+  - component: {fileID: 9111274079188509131}
+  - component: {fileID: 2376604015884149561}
   m_Layer: 0
   m_Name: ZombieBot_Agent
   m_TagString: Untagged
@@ -158,6 +160,38 @@ MonoBehaviour:
   heuristicWeight: 1.35
   freezeReactionDelay: 0.08
   useStudent4MovementController: 0
+--- !u!114 &9111274079188509131
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3436835251598974902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eba25339d3c8f174f9f2755173c130cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FailSafeZero.Core.EnemyHealth
+  maxHealth: 200
+  defeatDuration: 0.8
+  onDefeated:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &2376604015884149561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3436835251598974902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bae24ab24819c904c9dfe915a7141eb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FailSafeZero.Core.ZombieStrike
+  damagePerHit: 40
+  strikeInterval: 1.2
+  reachBonus: 0.4
 --- !u!1 &5677587997722373701
 GameObject:
   m_ObjectHideFlags: 0

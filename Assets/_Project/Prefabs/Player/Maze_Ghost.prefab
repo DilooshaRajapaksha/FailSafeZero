@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 2795820394491091190}
   - component: {fileID: 7418744243539319899}
   - component: {fileID: 1212510557697913257}
+  - component: {fileID: 8772525453964310753}
   m_Layer: 0
   m_Name: Maze_Ghost
   m_TagString: Bot
@@ -227,3 +228,20 @@ MonoBehaviour:
   slowedSpeed: 3
   isSlowed: 0
   originalSpeed: 3
+--- !u!114 &8772525453964310753
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6752645157077238094}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eba25339d3c8f174f9f2755173c130cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FailSafeZero.Core.EnemyHealth
+  maxHealth: 100
+  defeatDuration: 0.8
+  onDefeated:
+    m_PersistentCalls:
+      m_Calls: []
