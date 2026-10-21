@@ -13,3 +13,8 @@
   - PBR linear maps (Roughness, Metalness, Displacement, AO) imported with `sRGB = false`.
   - Color / Albedo maps imported with `sRGB = true`.
   - Normal compression quality (50) with Mipmaps enabled.
+
+## 3. Shadow Atlas & Runtime Lighting Management
+- [x] **URP Punctual Light Atlas Budget:** Shadow resolution managed across 48 punctual lights. Non-critical accent lights configured with soft distance falloff.
+- [x] **Directional Light Culling:** Sun set to 0 intensity so no global shadow map cascade overhead is incurred.
+- [x] **Zero Garbage Collection Path Queries:** Agent path checks reuse cached `NavMeshPath` buffers without per-frame heap allocations.
