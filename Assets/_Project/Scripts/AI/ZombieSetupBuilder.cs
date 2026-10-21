@@ -9,7 +9,7 @@ namespace FailSafeZero.AI
 {
     public class ZombieSetupBuilder : MonoBehaviour
     {
-        [ContextMenu("1. Spawn Zombie Bot & Create Prefab (Commit #11)")]
+        [ContextMenu("1. Spawn Zombie Bot & Create Prefab")]
         public void SpawnZombieAndPrefab()
         {
             GameObject existing = GameObject.Find("ZombieBot_Agent");
@@ -62,10 +62,10 @@ namespace FailSafeZero.AI
             PrefabUtility.SaveAsPrefabAssetAndConnect(zombie, prefabFolder + "/ZombieBot_Agent.prefab", InteractionMode.AutomatedAction);
 #endif
             SaveSceneChanges();
-            Debug.Log("Commit #11 Ready: ZombieBot spawned in Arena 1 and saved as Prefab!");
+            Debug.Log("ZombieBot spawned in Arena 1 and saved as Prefab!");
         }
 
-        [ContextMenu("2. Tune Zombie Speed & Detection Balance (Commit #12)")]
+        [ContextMenu("2. Tune Zombie Speed & Detection Balance")]
         public void TuneZombieParameters()
         {
             ZombieAgentAI ai = Object.FindFirstObjectByType<ZombieAgentAI>();
@@ -83,7 +83,7 @@ namespace FailSafeZero.AI
             }
 
             SaveSceneChanges();
-            Debug.Log("Commit #12 Ready: Zombie parameters tuned for scary but fair gameplay!");
+            Debug.Log("Zombie parameters tuned for scary but fair gameplay!");
         }
 
         private void SaveSceneChanges()

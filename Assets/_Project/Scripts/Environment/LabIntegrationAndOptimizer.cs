@@ -14,7 +14,7 @@ namespace FailSafeZero.Environment
     /// </summary>
     public class LabIntegrationAndOptimizer : MonoBehaviour
     {
-        [ContextMenu("1. Place Lab Props & Integration Anchors (Commit #13)")]
+        [ContextMenu("1. Place Lab Props & Integration Anchors")]
         public void PlaceLabPropsAndIntegrationSlots()
         {
             Transform root = GameObject.Find("Lab_Environment_Root")?.transform;
@@ -26,17 +26,31 @@ namespace FailSafeZero.Environment
             GameObject propsGroup = new GameObject("09_Integration_And_Props");
             propsGroup.transform.SetParent(root);
 
-            Shader urp = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
-            Material crateMat = new Material(urp) { color = new Color(0.2f, 0.32f, 0.4f) };
-            Material consoleMat = new Material(urp) { color = new Color(0.1f, 0.12f, 0.15f) };
+#if UNITY_EDITOR
+            Material trimMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/Environment/M_Lab_Trim.mat");
+            Material pillarMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/_Project/Materials/Environment/M_Lab_Pillar.mat");
+#else
+            Material trimMat = null;
+            Material pillarMat = null;
+#endif
+            if (trimMat == null)
+            {
+                Shader urp = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+                trimMat = new Material(urp) { color = new Color(0.1f, 0.12f, 0.15f) };
+            }
+            if (pillarMat == null)
+            {
+                Shader urp = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+                pillarMat = new Material(urp) { color = new Color(0.2f, 0.32f, 0.4f) };
+            }
 
-            CreateProp(propsGroup.transform, "LabConsole_StartRoom", new Vector3(-3.5f, 0.6f, 3.5f), new Vector3(1.8f, 1.2f, 0.8f), consoleMat);
-            CreateProp(propsGroup.transform, "ContainmentCrate_Arena1_A", new Vector3(-7.5f, 0.75f, 22f), new Vector3(1.5f, 1.5f, 1.5f), crateMat);
-            CreateProp(propsGroup.transform, "ContainmentCrate_Arena1_B", new Vector3(7.5f, 0.75f, 28f), new Vector3(1.5f, 1.5f, 1.5f), crateMat);
-            CreateProp(propsGroup.transform, "GravityAnchorBlock_Arena2_A", new Vector3(-5f, 1.0f, 52f), new Vector3(2f, 2f, 2f), crateMat);
-            CreateProp(propsGroup.transform, "GravityAnchorBlock_Arena2_B", new Vector3(5f, 1.0f, 58f), new Vector3(2f, 2f, 2f), crateMat);
-            CreateProp(propsGroup.transform, "IllusionObelisk_Arena3_L", new Vector3(-6f, 2.0f, 85f), new Vector3(1.2f, 4f, 1.2f), consoleMat);
-            CreateProp(propsGroup.transform, "IllusionObelisk_Arena3_R", new Vector3(6f, 2.0f, 85f), new Vector3(1.2f, 4f, 1.2f), consoleMat);
+            CreateProp(propsGroup.transform, "LabConsole_StartRoom", new Vector3(-3.5f, 0.6f, 3.5f), new Vector3(1.8f, 1.2f, 0.8f), trimMat);
+            CreateProp(propsGroup.transform, "ContainmentCrate_Arena1_A", new Vector3(-7.5f, 0.75f, 22f), new Vector3(1.5f, 1.5f, 1.5f), pillarMat);
+            CreateProp(propsGroup.transform, "ContainmentCrate_Arena1_B", new Vector3(7.5f, 0.75f, 28f), new Vector3(1.5f, 1.5f, 1.5f), pillarMat);
+            CreateProp(propsGroup.transform, "GravityAnchorBlock_Arena2_A", new Vector3(-5f, 1.0f, 52f), new Vector3(2f, 2f, 2f), pillarMat);
+            CreateProp(propsGroup.transform, "GravityAnchorBlock_Arena2_B", new Vector3(5f, 1.0f, 58f), new Vector3(2f, 2f, 2f), pillarMat);
+            CreateProp(propsGroup.transform, "IllusionObelisk_Arena3_L", new Vector3(-6f, 2.0f, 85f), new Vector3(1.2f, 4f, 1.2f), trimMat);
+            CreateProp(propsGroup.transform, "IllusionObelisk_Arena3_R", new Vector3(6f, 2.0f, 85f), new Vector3(1.2f, 4f, 1.2f), trimMat);
 
             CreateIntegrationAnchor(propsGroup.transform, "Student2_Doors_And_Traps_Anchor", new Vector3(0f, 0f, 5f));
             CreateIntegrationAnchor(propsGroup.transform, "Student3_CustomModels_Anchor", new Vector3(0f, 0f, 85f));
@@ -46,7 +60,7 @@ namespace FailSafeZero.Environment
             Debug.Log("Lab props and teammate integration anchors placed!");
         }
 
-        [ContextMenu("2. Optimize Static Batching, Textures & Re-bake NavMesh (Commit #14)")]
+        [ContextMenu("2. Optimize Static Batching, Textures & Re-bake NavMesh")]
         public void OptimizeWorldAndRebakeNavMesh()
         {
             Transform root = GameObject.Find("Lab_Environment_Root")?.transform;
@@ -58,7 +72,7 @@ namespace FailSafeZero.Environment
             }
 
 #if UNITY_EDITOR
-            string[] textureGuids = AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/_Project" });
+            string[] textureGuids = AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/_Project/Art/Textures/Environment" });
             foreach (string guid in textureGuids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
@@ -82,7 +96,7 @@ namespace FailSafeZero.Environment
             Debug.Log("Static batching enabled, textures compressed, and NavMesh re-baked!");
         }
 
-        [ContextMenu("3. Generate Student 1 Design & Viva Documentation (Commit #15)")]
+        [ContextMenu("3. Generate Student 1 Design & Viva Documentation")]
         public void GenerateVivaDocumentation()
         {
             string docFolder = "Assets/_Project/Docs";
@@ -131,20 +145,18 @@ namespace FailSafeZero.Environment
             CreateProp(corridorD.transform, "Wall_West", new Vector3(-2f, 2f, 100f), new Vector3(0.5f, 4f, 10f), wallMat);
             CreateProp(corridorD.transform, "Wall_East", new Vector3(2f, 2f, 100f), new Vector3(0.5f, 4f, 10f), wallMat);
 
-            // 2. Instantiate Student 4's Maze_Arena.prefab at z = 111 (connects cleanly to Corridor D)
+            // 2. Instantiate Student 4's Maze_Arena.prefab at z = 111
+            // NOTE: Detailed height alignment, side placement, and connector corridors are handled by FailSafeZero/World/MazeAlignmentTool.cs
             GameObject mazeHolder = new GameObject("07c_Arena4_Maze_Student4");
             mazeHolder.transform.SetParent(root);
             mazeHolder.transform.position = new Vector3(0f, 0f, 111f);
-
-            // Add supporting walkable floor under Maze_Arena in case the prefab only has walls
-            CreateProp(mazeHolder.transform, "Maze_WalkableFloor_Base", new Vector3(0f, -0.25f, 111f), new Vector3(24f, 0.5f, 24f), floorMat);
 
             GameObject mazePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Arenas/Maze_Arena.prefab");
             if (mazePrefab != null)
             {
                 GameObject mazeInstance = (GameObject)PrefabUtility.InstantiatePrefab(mazePrefab, mazeHolder.transform);
                 mazeInstance.name = "Maze_Arena";
-                mazeInstance.transform.localPosition = Vector3.zero;
+                // Keep Student 4's custom side placement and rotation intact
             }
             else
             {
