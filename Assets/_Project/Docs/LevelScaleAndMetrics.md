@@ -23,3 +23,8 @@
   - Doorway gap width: 7.39m (centered at Z = 116.88m).
   - The 4.0m stub corridor slots flush inside this 7.39m opening with zero geometry intersection or z-fighting.
 - **Vertical Leveling:** Maze_Arena local Y elevated from -2.118m to 0.000m so `Maze_floor` top surface sits at Y = 0.00m flush with lab flooring.
+
+## 4. Extraction & Exit Room Placement
+- **08_ExitRoom:** 8.0m x 8.0m x 4.0m final extraction chamber.
+- **Relocation Coordinates:** Positioned at `(-47.68m, 0.00m, 148.87m)` flush with Student 4's maze exit doorway.
+- **Extraction Flow:** Player enters maze from west stub at Z=116.88m, navigates through maze corridors, and emerges directly into 08_ExitRoom to trigger `ExitZone`.
