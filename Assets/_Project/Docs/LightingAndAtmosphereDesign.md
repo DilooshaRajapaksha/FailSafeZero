@@ -16,3 +16,10 @@
 - **Arena 3 (Illusion Containment):** Deep Perceptual Violet (`RGB: 0.75, 0.15, 1.0`, intensity 3.5, range 20m) complementing holographic decoy bot distortion.
 - **07c Maze Arena:** Bio-luminescent teal fill lights (`RGB: 0.2, 0.9, 0.6`, intensity 3.0, range 16m) providing visibility without spoiling maze navigation.
 - **08 Exit Room:** Clean extraction emerald green (`RGB: 0.1, 0.9, 0.3`, intensity 4.0, range 12m) indicating objective completion.
+
+## 3. Universal Render Pipeline (URP) Post-Processing Stack
+- **Volume Type:** Global Volume (`LabPostFX.asset`) on `PostFX_Volume` GameObject.
+- **Tonemapping:** ACES cinematic curve preserving highlight detail from emergency beacons without crushing shadow contrast.
+- **Bloom:** Intensity `0.6`, Threshold `0.9`, Scatter `0.7` for subtle sci-fi emissive glow on terminal screens and hazard strips.
+- **Vignette:** Intensity `0.28`, Smoothness `0.35`, Rounded `false` simulating claustrophobic helmet visor optics.
+- **Color Adjustments:** Post-exposure `0.0`, Contrast `+15`, Saturation `+10` for punchy industrial contrast.
