@@ -1,7 +1,10 @@
 # FailSafeZero - Atmospheric Lighting & Mood Specification (Student 1)
-- **Global Ambient Setup:** Dimmed directional fill (0.2 intensity) for dark sci-fi containment look.
-- **Corridor Emergency System:** Pulsing red point lights driven by sinusoidal interpolation (`EmergencyLightPulse.cs`).
-- **Arena 1 Mood:** Cold Cryo Cyan (RGB: 0.0, 0.85, 0.95) to highlight Zombie motion-freeze tension.
-- **Arena 2 Mood:** Industrial High-Voltage Amber (RGB: 1.0, 0.55, 0.05) for gravity hazard visibility.
-- **Arena 3 Mood:** Deep Perceptual Violet (RGB: 0.75, 0.15, 1.0) to complement Illusion Bot decoys.
-- **Maze Arena & Exit:** Bio-luminescent teal and safe extraction green lighting.
+
+## 1. Subterranean Environment Baseline
+- **Directional Sunlight:** Intensity set to `0.00` to simulate a fully subterranean, windowless research bunker.
+- **Global Ambient Lighting:** Flat color ambient set to deep industrial charcoal (`RGB: 0.05, 0.06, 0.08`). Eliminates washed-out skybox light.
+- **Volumetric Exponential Squared Fog:**
+  - Mode: `FogMode.ExponentialSquared`
+  - Density: `0.020`
+  - Color: Cool subterranean slate (`RGB: 0.08, 0.09, 0.12`)
+  - Distance attenuation creates depth perception down long 4m corridors while masking distant occlusion culling bounds.
