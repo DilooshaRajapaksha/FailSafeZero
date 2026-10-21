@@ -12,3 +12,14 @@
 - **05_Arena2_Gravity:** 20.0m x 20.0m x 7.0m (High-bay test chamber for vertical physics and gravity hazards).
 - **06_Corridor_C:** 4.0m width x 4.0m height x 10.0m length (Z=65m to 75m).
 - **07_Arena3_Illusion:** 20.0m x 20.0m x 5.0m (Perceptual decoy evaluation arena with dual obelisks).
+
+## 3. Student 4 Maze Integration & Corridor D Extension
+- **07b_Corridor_D_ToMaze:** Extended from Z=95.0m to Z=118.88m (total length: 23.88m, width: 4.0m).
+- **07d_Connector_ToMaze:** West stub corridor connecting Corridor D to Student 4's Maze_Arena entry opening.
+  - Connector bounds: X = [-38.10m .. -34.10m], Z = [114.88m .. 118.88m] (4.0m wide x 4.0m high).
+- **Doorway Clearance Alignment:**
+  - Student 4's `Entry_Wall_01` ends at Z = 113.18m.
+  - Student 4's `Entry_Wall_02` starts at Z = 120.57m.
+  - Doorway gap width: 7.39m (centered at Z = 116.88m).
+  - The 4.0m stub corridor slots flush inside this 7.39m opening with zero geometry intersection or z-fighting.
+- **Vertical Leveling:** Maze_Arena local Y elevated from -2.118m to 0.000m so `Maze_floor` top surface sits at Y = 0.00m flush with lab flooring.
