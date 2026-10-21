@@ -1,5 +1,6 @@
-# FailSafeZero - NavMesh Baking & Weighted A* Pathfinding (Student 1)
-- **NavMesh Surface Configuration:** Baked over `Lab_Environment_Root` children using `CollectObjects.Children`.
-- **Obstacle Carve & Static Flags:** All structural walls, cover pillars, containment crates, and Maze_Arena walls marked Static.
-- **ZombieAgentAI FSM:** 4 states (`Dormant`, `PursuingMotion`, `InvestigatingTremor`, `Attacking`).
-- **Weighted A* Formula:** `f(n) = g(n) + w * h(n)` with `w = 1.45` heuristic weight for responsive pursuit when player velocity exceeds `0.12 m/s`.
+# FailSafeZero - NavMesh Baking & Pathfinding Validation Report (Student 1)
+
+## 1. External Asset Serialization Architecture
+- **Persistent Asset Storage:** NavMesh surface data is baked and saved externally at `Assets/_Project/Scenes/MainLabScene/NavMesh-Lab_Environment_Root.asset`.
+- **Git Merge Protection:** By storing binary triangulation in an external asset, `MainLabScene.unity` remains pure `%YAML 1.1` text, preventing 5MB+ merge conflicts across team branches.
+- **Ceiling Isolation:** All modular ceiling slabs (rooms 01-08, 07d) include `NavMeshModifier` with `ignoreFromBuild = true` to prevent agents from baking onto roof surfaces.
