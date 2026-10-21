@@ -29,6 +29,108 @@ namespace FailSafeZero.EditorTools.WorldPolish
         }
 
         // ====================================================================================
+        // MENU 0: GENERATE M_LAB MATERIALS FROM TEXTURES
+        // ====================================================================================
+        [MenuItem("FailSafeZero/World/Materials 0 - Generate M_Lab Materials From Textures", priority = 20)]
+        public static void GenerateLabMaterialsFromTextures()
+        {
+            if (!AssetDatabase.IsValidFolder("Assets/_Project/Materials"))
+            {
+                AssetDatabase.CreateFolder("Assets/_Project", "Materials");
+            }
+            if (!AssetDatabase.IsValidFolder(MaterialFolder))
+            {
+                AssetDatabase.CreateFolder("Assets/_Project/Materials", "Environment");
+            }
+
+            Shader urpLit = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+
+            // 1. M_Lab_Floor
+            Texture2D floorColor = LoadTexture("MetalPlates006_2K-JPG_Color") ?? LoadTexture("Metal027_1K-JPG_Color");
+            Texture2D floorNormal = LoadTexture("MetalPlates006_2K-JPG_NormalDX") ?? LoadTexture("Metal027_1K-JPG_NormalDX");
+            CreateOrUpdateMaterial("M_Lab_Floor", urpLit, floorColor, floorNormal, Color.white, 0.6f, 0.5f, new Vector2(4f, 4f));
+
+            // 2. M_Lab_Wall
+            Texture2D wallColor = LoadTexture("Metal033_1K-JPG_Color");
+            Texture2D wallNormal = LoadTexture("Metal033_1K-JPG_NormalDX");
+            CreateOrUpdateMaterial("M_Lab_Wall", urpLit, wallColor, wallNormal, Color.white, 0.5f, 0.4f, new Vector2(4f, 2f));
+
+            // 3. M_Lab_Pillar
+            Texture2D concreteColor = LoadTexture("Concrete015_1K-JPG_Color");
+            Texture2D concreteNormal = LoadTexture("Concrete015_1K-JPG_NormalDX");
+            CreateOrUpdateMaterial("M_Lab_Pillar", urpLit, concreteColor, concreteNormal, Color.white, 0.1f, 0.3f, new Vector2(2f, 4f));
+
+            // 4. M_Lab_Ceiling
+            CreateOrUpdateMaterial("M_Lab_Ceiling", urpLit, concreteColor, concreteNormal, new Color(0.25f, 0.28f, 0.32f), 0.2f, 0.3f, new Vector2(4f, 4f));
+
+            // 5. M_Lab_Trim
+            CreateOrUpdateMaterial("M_Lab_Trim", urpLit, wallColor, wallNormal, new Color(0.35f, 0.38f, 0.45f), 0.7f, 0.6f, new Vector2(2f, 2f));
+
+            AssetDatabase.SaveAssets();
+            Debug.Log("[WorldPolish] Materials 0 - Successfully created and configured M_Lab_Floor, M_Lab_Wall, M_Lab_Pillar, M_Lab_Ceiling, M_Lab_Trim in Assets/_Project/Materials/Environment/!");
+
+            // Automatically apply the new materials across the lab!
+            ApplyMaterialsToLab();
+        }
+
+        private static Texture2D LoadTexture(string searchName)
+        {
+            string[] guids = AssetDatabase.FindAssets($"{searchName} t:Texture2D", new[] { TextureFolder });
+            if (guids != null && guids.Length > 0)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+                return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            }
+            return null;
+        }
+
+        private static Material CreateOrUpdateMaterial(string matName, Shader shader, Texture2D baseMap, Texture2D normalMap, Color tint, float metallic, float smoothness, Vector2 tiling)
+        {
+            string path = $"{MaterialFolder}/{matName}.mat";
+            Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+            bool isNew = false;
+            if (mat == null)
+            {
+                mat = new Material(shader);
+                isNew = true;
+            }
+            else
+            {
+                mat.shader = shader;
+            }
+
+            Undo.RecordObject(mat, "Configure Material");
+            mat.SetColor("_BaseColor", tint);
+            mat.SetFloat("_Metallic", metallic);
+            mat.SetFloat("_Smoothness", smoothness);
+
+            if (baseMap != null)
+            {
+                mat.SetTexture("_BaseMap", baseMap);
+                mat.SetTextureScale("_BaseMap", tiling);
+            }
+
+            if (normalMap != null)
+            {
+                mat.SetTexture("_BumpMap", normalMap);
+                mat.SetTextureScale("_BumpMap", tiling);
+                mat.SetFloat("_BumpScale", 1.0f);
+                mat.EnableKeyword("_NORMALMAP");
+            }
+
+            if (isNew)
+            {
+                AssetDatabase.CreateAsset(mat, path);
+            }
+            else
+            {
+                EditorUtility.SetDirty(mat);
+            }
+
+            return mat;
+        }
+
+        // ====================================================================================
         // MENU 1: FIX TEXTURE IMPORT SETTINGS
         // ====================================================================================
         [MenuItem("FailSafeZero/World/Materials 1 - Fix Texture Import Settings", priority = 21)]
