@@ -31,6 +31,22 @@ namespace FailSafeZero.EditorTools.WorldPolish
         {
             if (go == null) return false;
 
+            // Children/descendants of 09_Integration_And_Props that are NOT prefab instances
+            // and have no teammate scripts/components are Student 1's props (e.g. IllusionObelisk_Arena3_L/R)
+            if (IsDescendantOf(go.transform, "09_Integration_And_Props"))
+            {
+#if UNITY_EDITOR
+                string prefabPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(go);
+                bool isPrefab = !string.IsNullOrEmpty(prefabPath);
+#else
+                bool isPrefab = false;
+#endif
+                if (!isPrefab && !HasTeammateScript(go))
+                {
+                    return false;
+                }
+            }
+
             // Check if this object or any of its ancestors up to Lab_Environment_Root is a teammate object
             Transform current = go.transform;
             while (current != null)
@@ -54,6 +70,60 @@ namespace FailSafeZero.EditorTools.WorldPolish
                 }
 
                 current = current.parent;
+            }
+
+            return false;
+        }
+
+        private static bool IsDescendantOf(Transform t, string ancestorName)
+        {
+            Transform p = t != null ? t.parent : null;
+            while (p != null)
+            {
+                if (p.name == ancestorName) return true;
+                if (p.name == "Lab_Environment_Root") break;
+                p = p.parent;
+            }
+            return false;
+        }
+
+        public static bool HasTeammateScript(GameObject go)
+        {
+            if (go == null) return false;
+
+            // Component checks: NavMeshAgent, CharacterController, Rigidbody, Animator
+            if (go.GetComponent<NavMeshAgent>() != null ||
+                go.GetComponent<CharacterController>() != null ||
+                go.GetComponent<Rigidbody>() != null ||
+                go.GetComponent<Animator>() != null)
+            {
+                return true;
+            }
+
+            // Teammate scripts from Scripts/AI, Scripts/Core, Scripts/Player, Scripts/Weapons
+            foreach (Component c in go.GetComponents<Component>())
+            {
+                if (c == null) continue;
+                string typeName = c.GetType().FullName ?? c.GetType().Name;
+                if (typeName.Contains("FailSafeZero.AI") ||
+                    typeName.Contains("FailSafeZero.Player") ||
+                    typeName.Contains("FailSafeZero.Weapons") ||
+                    typeName.Contains("FailSafeZero.Interactions") ||
+                    typeName.Contains("FailSafeZero.Core") ||
+                    typeName.Contains("AgentMover") ||
+                    typeName.Contains("Agent4") ||
+                    typeName.Contains("MazeGhost") ||
+                    typeName.Contains("ZombieAgent") ||
+                    typeName.Contains("IllusionBot") ||
+                    typeName.Contains("BotChase") ||
+                    typeName.Contains("EnemyHealth") ||
+                    typeName.Contains("PlayerHealth") ||
+                    typeName.Contains("GameFlow") ||
+                    typeName.Contains("ObjectiveZone") ||
+                    typeName.Contains("ExitZone"))
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -100,42 +170,7 @@ namespace FailSafeZero.EditorTools.WorldPolish
             }
 #endif
 
-            // Component checks: NavMeshAgent, CharacterController, Rigidbody, Animator
-            if (go.GetComponent<NavMeshAgent>() != null ||
-                go.GetComponent<CharacterController>() != null ||
-                go.GetComponent<Rigidbody>() != null ||
-                go.GetComponent<Animator>() != null)
-            {
-                return true;
-            }
-
-            // Teammate scripts from Scripts/AI, Scripts/Core, Scripts/Player, Scripts/Weapons
-            foreach (Component c in go.GetComponents<Component>())
-            {
-                if (c == null) continue;
-                string typeName = c.GetType().FullName ?? c.GetType().Name;
-                if (typeName.Contains("FailSafeZero.AI") ||
-                    typeName.Contains("FailSafeZero.Player") ||
-                    typeName.Contains("FailSafeZero.Weapons") ||
-                    typeName.Contains("FailSafeZero.Interactions") ||
-                    typeName.Contains("FailSafeZero.Core") ||
-                    typeName.Contains("AgentMover") ||
-                    typeName.Contains("Agent4") ||
-                    typeName.Contains("MazeGhost") ||
-                    typeName.Contains("ZombieAgent") ||
-                    typeName.Contains("IllusionBot") ||
-                    typeName.Contains("BotChase") ||
-                    typeName.Contains("EnemyHealth") ||
-                    typeName.Contains("PlayerHealth") ||
-                    typeName.Contains("GameFlow") ||
-                    typeName.Contains("ObjectiveZone") ||
-                    typeName.Contains("ExitZone"))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return HasTeammateScript(go);
         }
 
         /// <summary>
