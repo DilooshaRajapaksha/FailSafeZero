@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 9060515237989780771}
   - component: {fileID: 9111274079188509131}
   - component: {fileID: 2376604015884149561}
+  - component: {fileID: 7568208993302221055}
   m_Layer: 0
   m_Name: ZombieBot_Agent
   m_TagString: Untagged
@@ -192,6 +193,47 @@ MonoBehaviour:
   damagePerHit: 40
   strikeInterval: 1.2
   reachBonus: 0.4
+--- !u!114 &7568208993302221055
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3436835251598974902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c25a367f4d024e844a3b608824109c8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FailSafeZero.Visuals.MonsterLook
+  preset: 1
+  replaceBodyMaterial: 1
+  bodyColor: {r: 0.16, g: 0.22, b: 0.12, a: 1}
+  bodyMetallic: 0.05
+  bodySmoothness: 0.2
+  eyes: 1
+  eyeColor: {r: 0.6, g: 1, b: 0.15, a: 1}
+  eyeHeight: 1.6
+  eyeForward: 0.45
+  eyeSpacing: 0.17
+  eyeSize: 0.1
+  eyeGlow: 6
+  glowLight: 1
+  lightColor: {r: 0.45, g: 1, b: 0.15, a: 1}
+  lightRange: 5
+  lightIntensity: 2.2
+  lightHeight: 1.2
+  aura: 1
+  auraColor: {r: 0.45, g: 0.85, b: 0.15, a: 0.55}
+  auraRadius: 0.6
+  auraRate: 16
+  auraSize: 0.07
+  auraRiseSpeed: 0.3
+  auraMaterial: {fileID: 0}
+  menaceRange: 12
+  speedForFullMenace: 2.5
+  idleBrightness: 0.12
+  ghostFlicker: 0
+  lastPreset: 1
 --- !u!1 &5677587997722373701
 GameObject:
   m_ObjectHideFlags: 0
