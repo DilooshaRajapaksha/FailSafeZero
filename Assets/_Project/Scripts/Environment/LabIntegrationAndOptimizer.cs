@@ -131,20 +131,18 @@ namespace FailSafeZero.Environment
             CreateProp(corridorD.transform, "Wall_West", new Vector3(-2f, 2f, 100f), new Vector3(0.5f, 4f, 10f), wallMat);
             CreateProp(corridorD.transform, "Wall_East", new Vector3(2f, 2f, 100f), new Vector3(0.5f, 4f, 10f), wallMat);
 
-            // 2. Instantiate Student 4's Maze_Arena.prefab at z = 111 (connects cleanly to Corridor D)
+            // 2. Instantiate Student 4's Maze_Arena.prefab at z = 111
+            // NOTE: Detailed height alignment, side placement, and connector corridors are handled by FailSafeZero/World/MazeAlignmentTool.cs
             GameObject mazeHolder = new GameObject("07c_Arena4_Maze_Student4");
             mazeHolder.transform.SetParent(root);
             mazeHolder.transform.position = new Vector3(0f, 0f, 111f);
-
-            // Add supporting walkable floor under Maze_Arena in case the prefab only has walls
-            CreateProp(mazeHolder.transform, "Maze_WalkableFloor_Base", new Vector3(0f, -0.25f, 111f), new Vector3(24f, 0.5f, 24f), floorMat);
 
             GameObject mazePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Project/Prefabs/Arenas/Maze_Arena.prefab");
             if (mazePrefab != null)
             {
                 GameObject mazeInstance = (GameObject)PrefabUtility.InstantiatePrefab(mazePrefab, mazeHolder.transform);
                 mazeInstance.name = "Maze_Arena";
-                mazeInstance.transform.localPosition = Vector3.zero;
+                // Keep Student 4's custom side placement and rotation intact
             }
             else
             {
