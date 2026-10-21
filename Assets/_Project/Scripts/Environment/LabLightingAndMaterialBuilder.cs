@@ -9,7 +9,7 @@ namespace FailSafeZero.Environment
 {
     public class LabLightingAndMaterialBuilder : MonoBehaviour
     {
-        [ContextMenu("1. Apply Dark Sci-Fi Materials (Commit #6)")]
+        [ContextMenu("1. Apply Dark Sci-Fi Materials")]
         public void ApplyMaterials()
         {
             Transform root = GameObject.Find("Lab_Environment_Root")?.transform;
@@ -42,7 +42,7 @@ namespace FailSafeZero.Environment
             Debug.Log("Commit #6 Ready: Dark Sci-Fi Materials applied and saved!");
         }
 
-        [ContextMenu("2. Add Dim Lab & Red Emergency Corridor Lights (Commit #7)")]
+        [ContextMenu("2. Add Dim Lab & Red Emergency Corridor Lights")]
         public void AddCorridorLights()
         {
             Transform root = GameObject.Find("Lab_Environment_Root")?.transform;
@@ -65,7 +65,7 @@ namespace FailSafeZero.Environment
             Debug.Log("Commit #7 Ready: Dim lab lights and red emergency lights created!");
         }
 
-        [ContextMenu("3. Add 3 Distinct Arena Mood Lights (Commit #8)")]
+        [ContextMenu("3. Add 3 Distinct Arena Mood Lights")]
         public void AddArenaMoodLights()
         {
             Transform root = GameObject.Find("Lab_Environment_Root")?.transform;
@@ -87,7 +87,7 @@ namespace FailSafeZero.Environment
             Debug.Log("Commit #8 Ready: 3 Distinct Arena Moods applied and saved!");
         }
 
-        [ContextMenu("4. Bake Walkable NavMesh Surface (Commit #9)")]
+        [ContextMenu("4. Bake Walkable NavMesh Surface")]
         public void BakeLabNavMesh()
         {
             Transform root = GameObject.Find("Lab_Environment_Root")?.transform;
