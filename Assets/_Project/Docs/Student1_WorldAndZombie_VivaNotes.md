@@ -37,7 +37,7 @@
 - **Verified Pathfinding:** End-to-end player path to Exit Room verified as **PathComplete** (total length: **241.63m**).
 
 ## 5. Autonomous Zombie Bot Agent (SE3062 Intelligent Systems)
-- **Architecture:** 4-State Finite State Machine (FSM) + Weighted A* NavMesh Pathfinding.
+- **Architecture:** 4-State Finite State Machine (FSM). Path එක හදන්නේ Unity NavMesh එකෙන් (ඒක ඇතුළේ A* පාවිච්චි වෙනවා). heuristicWeight එකෙන් කරන්නේ path cost එක ගණන් කරන එක විතරයි. මගේ contribution එක motion-sensing FSM එක.
 - **FSM States:**
   1. `Dormant`: Complete freeze when player is motionless.
   2. `PursuingMotion`: Active pursuit when player velocity exceeds threshold.
@@ -50,7 +50,7 @@
   - **Detection Radius:** `22.0m` (code default) / `24.0m` (tuned)
   - **Motion Velocity Threshold:** `0.15 m/s` (code default) / `0.12 m/s` (tuned)
   - **Attack Range:** `1.75 m`
-  - **Weighted A* Heuristic Weight:** `1.35` (code default) / `1.45` (tuned)
+  - **Heuristic Weight (Cost Calculation):** `1.35` (code default) / `1.45` (tuned) - (heuristicWeight එකෙන් කරන්නේ path cost එක calculate කරන එක විතරයි; path generation එක Unity NavMesh A* මගින් සිදු වේ)
   - **Freeze Reaction Delay:** `0.06 s`
   - **Target:** `FirstPersonPlayer` transform linked
 - **Mechanic Defense:** The Zombie Bot acts as a "Red Light, Green Light" predator. Players can only safely move when behind cover pillars or while the zombie is dormant; running in the open immediately alerts the bot.

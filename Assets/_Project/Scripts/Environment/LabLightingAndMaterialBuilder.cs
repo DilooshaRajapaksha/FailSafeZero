@@ -39,7 +39,7 @@ namespace FailSafeZero.Environment
             }
 
             SaveSceneChanges();
-            Debug.Log("Commit #6 Ready: Dark Sci-Fi Materials applied and saved!");
+            Debug.Log("Dark Sci-Fi Materials applied and saved!");
         }
 
         [ContextMenu("2. Add Dim Lab & Red Emergency Corridor Lights")]
@@ -62,7 +62,7 @@ namespace FailSafeZero.Environment
             CreateRoomLight(root, "06_Corridor_C", new Vector3(0f, 3.2f, 0f), Color.red, 2.5f, 10f, true);
 
             SaveSceneChanges();
-            Debug.Log("Commit #7 Ready: Dim lab lights and red emergency lights created!");
+            Debug.Log("Dim lab lights and red emergency lights created!");
         }
 
         [ContextMenu("3. Add 3 Distinct Arena Mood Lights")]
@@ -84,7 +84,7 @@ namespace FailSafeZero.Environment
             CreateRoomLight(root, "08_ExitRoom", new Vector3(0f, 3.2f, 0f), new Color(0.1f, 1.0f, 0.3f), 3.0f, 10f, false);
 
             SaveSceneChanges();
-            Debug.Log("Commit #8 Ready: 3 Distinct Arena Moods applied and saved!");
+            Debug.Log("3 Distinct Arena Moods applied and saved!");
         }
 
         [ContextMenu("4. Bake Walkable NavMesh Surface")]
@@ -103,7 +103,7 @@ namespace FailSafeZero.Environment
             surface.BuildNavMesh();
 
             SaveSceneChanges();
-            Debug.Log("Commit #9 Ready: NavMesh baked across all rooms and arenas!");
+            Debug.Log("NavMesh baked across all rooms and arenas!");
         }
 
         private void CreateRoomLight(Transform root, string roomName, Vector3 localPos, Color color, float intensity, float range, bool isEmergency)
