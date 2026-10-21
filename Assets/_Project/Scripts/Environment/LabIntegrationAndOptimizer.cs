@@ -58,7 +58,7 @@ namespace FailSafeZero.Environment
             }
 
 #if UNITY_EDITOR
-            string[] textureGuids = AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/_Project" });
+            string[] textureGuids = AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/_Project/Art/Textures/Environment" });
             foreach (string guid in textureGuids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
