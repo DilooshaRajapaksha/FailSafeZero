@@ -83,6 +83,8 @@ namespace FailSafeZero.AI.Illusion
 
         [Header("Debug")]
         [SerializeField] bool showDebugPanel = true;
+        [Tooltip("Only show the debug panel while the player is this close to the bot.")]
+        [SerializeField] float debugPanelDistance = 12f;
 
         // ---------------------------------------------------------------- events (for visuals / game)
         public event Action<BotMood> MoodChanged;
@@ -1003,7 +1005,8 @@ namespace FailSafeZero.AI.Illusion
 
         void OnGUI()
         {
-            if (!showDebugPanel || utilityAI == null)
+            if (!showDebugPanel || utilityAI == null || player == null ||
+                Vector3.Distance(transform.position, player.position) > debugPanelDistance)
             {
                 return;
             }
