@@ -5,9 +5,9 @@ namespace FailSafeZero.Environment
     [RequireComponent(typeof(Light))]
     public class EmergencyLightPulse : MonoBehaviour
     {
-        public float minIntensity = 0.5f;
-        public float maxIntensity = 3.0f;
-        public float pulseSpeed = 2.6f;
+        public float minIntensity = 2.5f;
+        public float maxIntensity = 2.5f;
+        public float pulseSpeed = 0f;
 
         private Light pointLight;
 

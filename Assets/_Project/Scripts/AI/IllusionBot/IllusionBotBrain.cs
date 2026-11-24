@@ -1005,26 +1005,45 @@ namespace FailSafeZero.AI.Illusion
 
         void OnGUI()
         {
-            if (!showDebugPanel || utilityAI == null || player == null ||
+            if (!showDebugPanel || utilityAI == null || health == null || player == null ||
                 Vector3.Distance(transform.position, player.position) > debugPanelDistance)
             {
                 return;
             }
 
-            GUILayout.BeginArea(new Rect(10, 10, 290, 250), GUI.skin.box);
-            GUILayout.Label($"ILLUSION BOT   state: {CurrentState}   HP: {health.Current:0}/{health.MaxHealth:0}");
-            GUILayout.Label($"Action: {CurrentAction}   Sees player: {CanSeePlayer}");
+            const float width = 210f;
+            const float height = 86f;
 
-            for (int i = 0; i < IllusionUtility.ActionCount; i++)
+            GUIStyle boxStyle = new GUIStyle(GUI.skin.box)
             {
-                float s = utilityAI.LastScores[i];
-                string bar = new string('|', Mathf.RoundToInt(Mathf.Clamp01(s) * 20f));
-                GUILayout.Label($"{(IllusionAction)i,-13} {s:0.00} {bar}");
-            }
+                fontSize = 10,
+                padding = new RectOffset(8, 8, 6, 6)
+            };
+            GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 10,
+                fontStyle = FontStyle.Bold
+            };
+            GUIStyle smallStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 9
+            };
 
-            GUILayout.Label($"Player fooled: {playerModel.FooledRate:P0}  (fake hits {playerModel.MirageHits} / real hits {playerModel.RealHits})");
-            int active = mirages != null ? mirages.ActiveCount : 0;
-            GUILayout.Label($"Mirages: {active} active / {DesiredMirageCount()} wanted");
+            GUILayout.BeginArea(new Rect(10f, 10f, width, height), boxStyle);
+            GUILayout.Label("ILLUSION BOT", titleStyle);
+
+            Rect barRect = GUILayoutUtility.GetRect(width - 16f, 9f);
+            GUI.Box(barRect, GUIContent.none);
+
+            float fill = Mathf.Clamp01(health.Health01);
+            Color previous = GUI.color;
+            GUI.color = Color.Lerp(new Color(0.85f, 0.2f, 0.2f), new Color(0.2f, 0.85f, 0.35f), fill);
+            GUI.DrawTexture(new Rect(barRect.x + 2f, barRect.y + 2f,
+                Mathf.Max(0f, barRect.width - 4f) * fill, barRect.height - 4f), Texture2D.whiteTexture);
+            GUI.color = previous;
+
+            GUILayout.Label($"HP {health.Current:0}/{health.MaxHealth:0}", smallStyle);
+            GUILayout.Label($"{CurrentState} | {CurrentAction}", smallStyle);
             GUILayout.EndArea();
         }
 

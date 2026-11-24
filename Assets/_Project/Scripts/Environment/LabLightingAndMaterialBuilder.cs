@@ -125,11 +125,6 @@ namespace FailSafeZero.Environment
             ptLight.intensity = intensity;
             ptLight.range = range;
             ptLight.shadows = LightShadows.Soft;
-
-            if (isEmergency)
-            {
-                lightObj.AddComponent<EmergencyLightPulse>();
-            }
         }
 
         private Material CreateOrLoadMaterial(string matName, Shader shader, Color color, float metallic, float smoothness)
