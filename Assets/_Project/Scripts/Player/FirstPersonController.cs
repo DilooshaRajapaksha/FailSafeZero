@@ -20,7 +20,7 @@ public class FirstPersonController : MonoBehaviour
     [Header("Ground Check")]
     public Transform groundCheck;
     public float groundDistance = 0.4f;
-    public LayerMask groundMask;
+    public LayerMask groundMask = 1;
 
     [Header("Crosshair")]
     public GameObject crosshair; // Drag your Crosshair UI here
@@ -56,7 +56,7 @@ public class FirstPersonController : MonoBehaviour
         {
             GameObject gc = new GameObject("GroundCheck");
             gc.transform.parent = transform;
-            gc.transform.localPosition = new Vector3(0, 0.4f, 0);
+            gc.transform.localPosition = new Vector3(0, -0.9f, 0);
             groundCheck = gc.transform;
         }
     }

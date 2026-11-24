@@ -149,7 +149,6 @@ GameObject:
   - component: {fileID: 2241332520910829712}
   - component: {fileID: 3747456472649340711}
   - component: {fileID: 6832989101136624400}
-  - component: {fileID: 5114955469966898865}
   - component: {fileID: 1619646383670235050}
   - component: {fileID: 1823108518353756911}
   - component: {fileID: 3676678707835890274}
@@ -234,29 +233,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &5114955469966898865
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4922890024554711273}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!143 &1619646383670235050
 CharacterController:
   m_ObjectHideFlags: 0
@@ -304,7 +280,7 @@ MonoBehaviour:
   groundDistance: 0.4
   groundMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1
   crosshair: {fileID: 0}
 --- !u!114 &3676678707835890274
 MonoBehaviour:
