@@ -61,6 +61,8 @@ public class MazeGhost : MonoBehaviour
     [Header("Head Tracking")]
     [Tooltip("The head/face bone. Auto-found as Spider_3/Spider_Armature/Body.003/Body.002/Body if empty.")]
     public Transform headBone;
+    [Tooltip("Visual root rotated around Y to aim the face. Rotating this instead of the head bone keeps the leg chains level.")]
+    public Transform facePivot;
     public bool trackHeadToPlayer = true;
     [Tooltip("Fallback local axis on the head bone that points out through the face. This rig uses local -Y.")]
     public Vector3 headFaceAxis = new Vector3(0f, -1f, 0f);
@@ -86,7 +88,6 @@ public class MazeGhost : MonoBehaviour
     private bool isDead;
     private float nextJumpTime;
     private float blockedTimer;
-    private SkinnedMeshRenderer eyesRenderer;
 
     private void Awake()
     {
@@ -119,10 +120,9 @@ public class MazeGhost : MonoBehaviour
         if (headBone == null)
             headBone = transform.Find("Spider_3/Spider_Armature/Body.003/Body.002/Body");
 
-        // The eye mesh is the most reliable source for the actual face direction.
-        var eyesTransform = transform.Find("Spider_3/Spider_Eyes");
-        if (eyesTransform != null)
-            eyesRenderer = eyesTransform.GetComponent<SkinnedMeshRenderer>();
+        // Rotate the visual root, never the head bone: the leg chains are children of the face bone.
+        if (facePivot == null)
+            facePivot = transform.Find("Spider_3");
 
         // Fall back to the maze floor collider if it was not assigned in the Inspector.
         if (mazeBounds == null)
@@ -214,46 +214,37 @@ public class MazeGhost : MonoBehaviour
     }
 
     /// <summary>
-    /// Keeps the head/face aimed at the player after the Animator has posed the rig.
-    /// This runs in LateUpdate so it is not overwritten by the active animation clip.
+    /// Keeps the face aimed at the player by yawing the visual root. The head bone cannot be
+    /// rotated directly because the leg chains are parented to it, which pushes legs through the floor.
     /// </summary>
     private void LateUpdate()
     {
-        if (!trackHeadToPlayer || headBone == null || player == null || isDead)
+        if (!trackHeadToPlayer || headBone == null || facePivot == null || player == null || isDead)
             return;
 
         Vector3 aimPoint = player.position + Vector3.up * headAimHeight;
-        Vector3 toPlayer = aimPoint - headBone.position;
+        Vector3 toPlayer = Vector3.ProjectOnPlane(aimPoint - headBone.position, Vector3.up);
         if (toPlayer.sqrMagnitude < 0.0001f)
             return;
         toPlayer.Normalize();
 
-        // The imported rig's face axis is local -Y on the Body bone. Using the axis
-        // directly is immediate; the eye mesh bounds only serve as a fallback.
-        Vector3 currentFace;
-        if (headFaceAxis.sqrMagnitude > 0.0001f)
-        {
-            currentFace = headBone.TransformDirection(headFaceAxis.normalized);
-        }
-        else if (eyesRenderer != null)
-        {
-            currentFace = eyesRenderer.bounds.center - headBone.position;
-        }
-        else
-        {
-            currentFace = headBone.forward;
-        }
-
+        Vector3 currentFace = Vector3.ProjectOnPlane(
+            headBone.TransformDirection(headFaceAxis.normalized), Vector3.up);
         if (currentFace.sqrMagnitude < 0.0001f)
             return;
         currentFace.Normalize();
 
-        float maxRadians = headMaxAngle * Mathf.Deg2Rad;
-        Vector3 clampedFace = Vector3.RotateTowards(currentFace, toPlayer, maxRadians, 0f);
-        Quaternion correction = Quaternion.FromToRotation(currentFace, clampedFace);
-        headBone.rotation = Quaternion.Slerp(
-            headBone.rotation,
-            correction * headBone.rotation,
+        float signedAngle = Mathf.Atan2(
+            Vector3.Dot(Vector3.up, Vector3.Cross(currentFace, toPlayer)),
+            Vector3.Dot(currentFace, toPlayer)
+        ) * Mathf.Rad2Deg;
+
+        signedAngle = Mathf.Clamp(signedAngle, -headMaxAngle, headMaxAngle);
+        float targetYaw = facePivot.localEulerAngles.y + signedAngle;
+        Quaternion targetRotation = Quaternion.Euler(0f, targetYaw, 0f);
+        facePivot.localRotation = Quaternion.Slerp(
+            facePivot.localRotation,
+            targetRotation,
             Mathf.Clamp01(headTurnSpeed * Time.deltaTime)
         );
     }

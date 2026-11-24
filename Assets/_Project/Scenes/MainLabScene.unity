@@ -3292,6 +3292,13 @@ MonoBehaviour:
   playerHeightForJump: 0.8
   jumpToFallDelay: 0.45
   landDelay: 1.1
+  headBone: {fileID: 0}
+  facePivot: {fileID: 879416721}
+  trackHeadToPlayer: 1
+  headFaceAxis: {x: 0, y: -1, z: 0}
+  headTurnSpeed: 90
+  headMaxAngle: 180
+  headAimHeight: 1.5
 --- !u!4 &477783411
 Transform:
   m_ObjectHideFlags: 0
@@ -3301,8 +3308,8 @@ Transform:
   m_GameObject: {fileID: 477783406}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -19.66, y: 0.57, z: 109.51}
-  m_LocalScale: {x: 0.4, y: 1, z: 1}
+  m_LocalPosition: {x: -19.66, y: 0, z: 109.51}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 879416721}
@@ -12648,11 +12655,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 91092b9a0f9d4b945b29ef6ae4ebcb4b, type: 3}
       propertyPath: m_LocalScale.x
-      value: 3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 91092b9a0f9d4b945b29ef6ae4ebcb4b, type: 3}
       propertyPath: m_LocalScale.y
-      value: 5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 91092b9a0f9d4b945b29ef6ae4ebcb4b, type: 3}
       propertyPath: m_LocalPosition.x
@@ -12660,7 +12667,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 91092b9a0f9d4b945b29ef6ae4ebcb4b, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.98
+      value: 0.28
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 91092b9a0f9d4b945b29ef6ae4ebcb4b, type: 3}
       propertyPath: m_LocalPosition.z
@@ -12668,7 +12675,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 91092b9a0f9d4b945b29ef6ae4ebcb4b, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: -0.00000004371139
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 91092b9a0f9d4b945b29ef6ae4ebcb4b, type: 3}
       propertyPath: m_LocalRotation.x
@@ -12676,7 +12683,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 91092b9a0f9d4b945b29ef6ae4ebcb4b, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 91092b9a0f9d4b945b29ef6ae4ebcb4b, type: 3}
       propertyPath: m_LocalRotation.z
