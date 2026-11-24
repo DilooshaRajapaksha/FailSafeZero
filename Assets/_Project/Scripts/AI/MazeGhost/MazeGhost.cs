@@ -2,11 +2,8 @@ using UnityEngine;
 using UnityEngine.AI;
 
 /// <summary>
-/// Maze Ghost AI behaviour.
-/// Handles navigation, slow effect and drives every animation in the ghost controller:
-///   Speed, MoveDirection, Forward, Run - locomotion selection
-///   Attack, Jump, Fall, WaitPose       - one-shot overrides
-///   Die, Die2                          - defeat overrides
+/// Maze Ghost movement and animation.
+/// Handles navigation, the slow effect and the animator parameters.
 /// </summary>
 public class MazeGhost : MonoBehaviour
 {
@@ -14,7 +11,7 @@ public class MazeGhost : MonoBehaviour
     public Transform player;          // Drag player Transform here
     public float chaseSpeed = 6.0f;   // Normal chasing speed
     public float slowedSpeed = 3.0f;  // Speed when slowed by player
-    public float stoppingDistance = 0.5f;
+    public float stoppingDistance = 1.4f;
     public float turnSpeed = 3.5f;    // Slow turn lets strafe/back animations show while cornering
 
     [Header("Chase Activation")]
@@ -51,7 +48,7 @@ public class MazeGhost : MonoBehaviour
     public string dieParameter = "Die";
     public string die2Parameter = "Die2";
 
-    [Header("Trick Triggers")]
+    [Header("Jump Triggers")]
     public float jumpCooldown = 4f;
     public float blockedTimeBeforeJump = 0.8f;
     public float playerHeightForJump = 0.8f;
@@ -59,12 +56,12 @@ public class MazeGhost : MonoBehaviour
     public float landDelay = 1.1f;
 
     [Header("Head Tracking")]
-    [Tooltip("The head/face bone. Auto-found as Spider_3/Spider_Armature/Body.003/Body.002/Body if empty.")]
+    [Tooltip("Head bone used for the face direction.")]
     public Transform headBone;
     [Tooltip("Visual root rotated around Y to aim the face. Rotating this instead of the head bone keeps the leg chains level.")]
     public Transform facePivot;
     public bool trackHeadToPlayer = true;
-    [Tooltip("Fallback local axis on the head bone that points out through the face. This rig uses local -Y.")]
+    [Tooltip("Local axis on the head bone that points out through the face. This rig uses local -Y.")]
     public Vector3 headFaceAxis = new Vector3(0f, -1f, 0f);
     public float headTurnSpeed = 90f;
     public float headMaxAngle = 180f;
@@ -98,7 +95,7 @@ public class MazeGhost : MonoBehaviour
 
         agent.speed = chaseSpeed;
         agent.stoppingDistance = stoppingDistance;
-        agent.updateRotation = false; // rotation is smoothed below
+        agent.updateRotation = false;
 
         // Cache animator hashes.
         speedHash = Animator.StringToHash(speedParameter);
@@ -112,11 +109,11 @@ public class MazeGhost : MonoBehaviour
         dieHash = Animator.StringToHash(dieParameter);
         die2Hash = Animator.StringToHash(die2Parameter);
 
-        // Auto-assign animator if not dragged in the Inspector.
+        // Use the child animator when none is assigned.
         if (anim == null)
             anim = GetComponentInChildren<Animator>();
 
-        // Auto-find the head bone if it was not assigned in the Inspector.
+        // Resolve rig references from the model hierarchy.
         if (headBone == null)
             headBone = transform.Find("Spider_3/Spider_Armature/Body.003/Body.002/Body");
 
@@ -170,8 +167,7 @@ public class MazeGhost : MonoBehaviour
         chaseActivated = latchChase || playerNearMaze;
         agent.SetDestination(player.position);
 
-        // Work out movement direction BEFORE rotating. Slow turning is what exposes
-        // the left/right/backward clips while the ghost cuts corners.
+        // Read travel direction before turning so cornering uses the strafe clips.
         Vector3 planarVelocity = Vector3.ProjectOnPlane(agent.velocity, Vector3.up);
         float velocityMagnitude = planarVelocity.magnitude;
         float normalizedSpeed = Mathf.Clamp01(velocityMagnitude / Mathf.Max(0.01f, chaseSpeed));
@@ -195,7 +191,6 @@ public class MazeGhost : MonoBehaviour
         bool running = normalizedSpeed >= runThreshold && !isSlowed && !isJumping;
         SetAnimator(normalizedSpeed, moveDirection, forwardDirection, running);
 
-        // Smoothly turn toward the direction of travel.
         if (planarVelocity.sqrMagnitude > 0.01f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(planarVelocity.normalized, Vector3.up);
@@ -210,12 +205,11 @@ public class MazeGhost : MonoBehaviour
         if (distanceToPlayer <= attackDistance)
             TriggerAttack();
 
-        UpdateTrickTriggers(distanceToPlayer, velocityMagnitude);
+        UpdateJumpTriggers(distanceToPlayer, velocityMagnitude);
     }
 
     /// <summary>
-    /// Keeps the face aimed at the player by yawing the visual root. The head bone cannot be
-    /// rotated directly because the leg chains are parented to it, which pushes legs through the floor.
+    /// Turns the model toward the player without twisting the leg rig.
     /// </summary>
     private void LateUpdate()
     {
@@ -249,7 +243,7 @@ public class MazeGhost : MonoBehaviour
         );
     }
 
-    private void UpdateTrickTriggers(float distanceToPlayer, float velocityMagnitude)
+    private void UpdateJumpTriggers(float distanceToPlayer, float velocityMagnitude)
     {
         if (isJumping || Time.time < nextJumpTime)
             return;

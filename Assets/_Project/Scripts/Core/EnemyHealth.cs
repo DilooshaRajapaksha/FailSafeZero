@@ -62,10 +62,10 @@ namespace FailSafeZero.Core
         {
             IsDead = true;
 
-            // Let animation drivers play a defeat clip before their scripts are disabled.
+            // Play the defeat pose before disabling the enemy scripts.
             gameObject.BroadcastMessage("OnDefeatedAnimation", SendMessageOptions.DontRequireReceiver);
 
-            // Stop the AI: switch off every other script on this enemy, and its legs.
+            // Disable the enemy scripts and legs after the defeat pose starts.
             foreach (MonoBehaviour b in GetComponents<MonoBehaviour>())
             {
                 if (b != this) b.enabled = false;
