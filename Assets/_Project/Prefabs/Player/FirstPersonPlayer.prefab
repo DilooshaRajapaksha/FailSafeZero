@@ -152,6 +152,7 @@ GameObject:
   - component: {fileID: 5114955469966898865}
   - component: {fileID: 1619646383670235050}
   - component: {fileID: 1823108518353756911}
+  - component: {fileID: 3676678707835890274}
   m_Layer: 0
   m_Name: FirstPersonPlayer
   m_TagString: Player
@@ -304,6 +305,20 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   crosshair: {fileID: 0}
+--- !u!114 &3676678707835890274
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4922890024554711273}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2377d53414838c342ae6e9c36ef88af8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FailSafeZero.Core.PlayerHealth
+  maxHealth: 100
+  restartDelay: 2.5
 --- !u!1001 &1155826796584339156
 PrefabInstance:
   m_ObjectHideFlags: 0

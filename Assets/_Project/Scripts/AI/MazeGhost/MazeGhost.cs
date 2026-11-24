@@ -1,33 +1,33 @@
+using FailSafeZero.AI.Illusion;
 using UnityEngine;
 using UnityEngine.AI;
 
-/// <summary>
-/// Maze Ghost movement and animation.
-/// Handles navigation, the slow effect and the animator parameters.
-/// </summary>
 public class MazeGhost : MonoBehaviour
 {
     [Header("Chase Settings")]
-    public Transform player;          // Drag player Transform here
-    public float chaseSpeed = 6.0f;   // Normal chasing speed
-    public float slowedSpeed = 3.0f;  // Speed when slowed by player
+    public Transform player;
+    public float chaseSpeed = 6.0f;
+    public float slowedSpeed = 3.0f;
     public float stoppingDistance = 1.4f;
-    public float turnSpeed = 3.5f;    // Slow turn lets strafe/back animations show while cornering
+    public float turnSpeed = 3.5f;
 
     [Header("Chase Activation")]
-    public Collider mazeBounds;       // Assign Maze_floor's collider
-    public float chaseTriggerDistance = 12f; // Chase when player is this close to the maze bounds
-    public bool latchChase = true;    // Once triggered, keep chasing
+    public Collider mazeBounds;
+    public float chaseTriggerDistance = 12f;
+    public bool latchChase = true;
 
     [Header("Slow Effect")]
-    public bool isSlowed = false;     // Current slow state
-    public float slowDuration = 5.0f; // How long slow lasts
+    public bool isSlowed = false;
+    public float slowDuration = 5.0f;
     private float slowTimer = 0.0f;
 
     [Header("Attack")]
     public float attackDistance = 2.0f;
+    public float attackDamage = 15f;
+    public float attackHitTime = 0.35f;
     public float attackCooldown = 2.5f;
     private float nextAttackTime = 0.0f;
+    private bool attackPending;
 
     [Header("Animation - Locomotion")]
     public Animator anim;
@@ -72,6 +72,7 @@ public class MazeGhost : MonoBehaviour
     private int forwardHash;
     private int runHash;
     private int attackHash;
+    private int attackStateHash;
     private int jumpHash;
     private int fallHash;
     private int waitHash;
@@ -83,12 +84,12 @@ public class MazeGhost : MonoBehaviour
     private bool chaseActivated;
     private bool isJumping;
     private bool isDead;
+    private IDamageable playerDamage;
     private float nextJumpTime;
     private float blockedTimer;
 
     private void Awake()
     {
-        // Get (or add) NavMeshAgent
         agent = GetComponent<NavMeshAgent>();
         if (agent == null)
             agent = gameObject.AddComponent<NavMeshAgent>();
@@ -97,23 +98,21 @@ public class MazeGhost : MonoBehaviour
         agent.stoppingDistance = stoppingDistance;
         agent.updateRotation = false;
 
-        // Cache animator hashes.
         speedHash = Animator.StringToHash(speedParameter);
         moveDirectionHash = Animator.StringToHash(moveDirectionParameter);
         forwardHash = Animator.StringToHash(forwardParameter);
         runHash = Animator.StringToHash(runParameter);
         attackHash = Animator.StringToHash(attackParameter);
+        attackStateHash = Animator.StringToHash("Attack");
         jumpHash = Animator.StringToHash(jumpParameter);
         fallHash = Animator.StringToHash(fallParameter);
         waitHash = Animator.StringToHash(waitParameter);
         dieHash = Animator.StringToHash(dieParameter);
         die2Hash = Animator.StringToHash(die2Parameter);
 
-        // Use the child animator when none is assigned.
         if (anim == null)
             anim = GetComponentInChildren<Animator>();
 
-        // Resolve rig references from the model hierarchy.
         if (headBone == null)
             headBone = transform.Find("Spider_3/Spider_Armature/Body.003/Body.002/Body");
 
@@ -138,7 +137,6 @@ public class MazeGhost : MonoBehaviour
             return;
         }
 
-        // Handle slow effect timer.
         if (isSlowed)
         {
             slowTimer -= Time.deltaTime;
@@ -191,6 +189,8 @@ public class MazeGhost : MonoBehaviour
         bool running = normalizedSpeed >= runThreshold && !isSlowed && !isJumping;
         SetAnimator(normalizedSpeed, moveDirection, forwardDirection, running);
 
+        CheckAttackImpact();
+
         if (planarVelocity.sqrMagnitude > 0.01f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(planarVelocity.normalized, Vector3.up);
@@ -208,9 +208,6 @@ public class MazeGhost : MonoBehaviour
         UpdateJumpTriggers(distanceToPlayer, velocityMagnitude);
     }
 
-    /// <summary>
-    /// Turns the model toward the player without twisting the leg rig.
-    /// </summary>
     private void LateUpdate()
     {
         if (!trackHeadToPlayer || headBone == null || facePivot == null || player == null || isDead)
@@ -284,18 +281,40 @@ public class MazeGhost : MonoBehaviour
         anim.SetBool(runHash, running);
     }
 
-    /// <summary>Fire the Attack animation (respects the cooldown).</summary>
     public void TriggerAttack()
     {
         if (isDead || Time.time < nextAttackTime || anim == null)
             return;
 
         nextAttackTime = Time.time + attackCooldown;
+        attackPending = true;
         anim.ResetTrigger(jumpHash);
         anim.SetTrigger(attackHash);
     }
 
-    /// <summary>Play Jump, then automatically flow into Fall and land.</summary>
+    private void CheckAttackImpact()
+    {
+        if (!attackPending || anim == null)
+            return;
+
+        AnimatorStateInfo state = anim.GetCurrentAnimatorStateInfo(0);
+        if (state.shortNameHash != attackStateHash || state.normalizedTime < attackHitTime)
+            return;
+
+        attackPending = false;
+
+        if (player == null || Vector3.Distance(transform.position, player.position) > attackDistance + 0.5f)
+            return;
+
+        if (playerDamage == null)
+            playerDamage = player.GetComponentInParent<IDamageable>();
+
+        if (playerDamage != null)
+            playerDamage.ReceiveHit(attackDamage, player.position, gameObject);
+        else
+            player.SendMessage("TakeDamage", attackDamage, SendMessageOptions.DontRequireReceiver);
+    }
+
     public void TriggerJump()
     {
         if (isDead || isJumping || Time.time < nextJumpTime || anim == null)
@@ -310,7 +329,6 @@ public class MazeGhost : MonoBehaviour
         Invoke(nameof(Land), landDelay);
     }
 
-    /// <summary>Play the Fall animation on its own.</summary>
     public void TriggerFall()
     {
         if (isDead || anim == null)
@@ -319,14 +337,12 @@ public class MazeGhost : MonoBehaviour
         anim.SetTrigger(fallHash);
     }
 
-    /// <summary>Internal landing callback used after the jump animation.</summary>
     public void Land()
     {
         isJumping = false;
         blockedTimer = 0f;
     }
 
-    /// <summary>Play the idle wait pose once.</summary>
     public void TriggerWait()
     {
         if (isDead || anim == null)
@@ -335,7 +351,6 @@ public class MazeGhost : MonoBehaviour
         anim.SetTrigger(waitHash);
     }
 
-    /// <summary>Play the first death animation.</summary>
     public void TriggerDie()
     {
         if (isDead)
@@ -352,7 +367,6 @@ public class MazeGhost : MonoBehaviour
             anim.SetTrigger(dieHash);
     }
 
-    /// <summary>Play the alternate death animation.</summary>
     public void TriggerDie2()
     {
         if (isDead)
@@ -369,7 +383,6 @@ public class MazeGhost : MonoBehaviour
             anim.SetTrigger(die2Hash);
     }
 
-    /// <summary>Called by EnemyHealth through BroadcastMessage when the ghost is defeated.</summary>
     public void OnDefeatedAnimation()
     {
         TriggerDie();
@@ -388,7 +401,6 @@ public class MazeGhost : MonoBehaviour
                chaseTriggerDistance * chaseTriggerDistance;
     }
 
-    /// <summary>Set the slow state on the maze ghost.</summary>
     public void SetSlowed(bool slow)
     {
         if (isDead)
@@ -411,7 +423,6 @@ public class MazeGhost : MonoBehaviour
         }
     }
 
-    /// <summary>Set player reference from other scripts.</summary>
     public void SetPlayerReference(Transform newPlayer)
     {
         player = newPlayer;

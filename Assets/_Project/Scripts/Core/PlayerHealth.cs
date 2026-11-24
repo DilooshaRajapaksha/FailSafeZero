@@ -4,14 +4,6 @@ using UnityEngine.SceneManagement;
 
 namespace FailSafeZero.Core
 {
-    /// <summary>
-    /// The player's life. Put it on the FirstPersonPlayer.
-    ///
-    /// - Takes damage from the Zombie's strikes, the Illusion Bot's bolts, and anything
-    ///   that uses IDamageable or SendMessage("TakeDamage", x).
-    /// - Shows a health bar, and the screen flashes red when hit.
-    /// - On death it shows "YOU DIED" and restarts the level after a short delay.
-    /// </summary>
     public class PlayerHealth : MonoBehaviour, IDamageable
     {
         [SerializeField, Min(1f)] float maxHealth = 100f;
@@ -51,7 +43,6 @@ namespace FailSafeZero.Core
             }
         }
 
-        /// <summary>Compatibility with SendMessage("TakeDamage", x).</summary>
         public void TakeDamage(float amount)
         {
             ReceiveHit(amount, transform.position, null);

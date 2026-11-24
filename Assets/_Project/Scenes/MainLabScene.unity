@@ -3241,6 +3241,7 @@ GameObject:
   - component: {fileID: 477783411}
   - component: {fileID: 477783407}
   - component: {fileID: 477783412}
+  - component: {fileID: 477783413}
   m_Layer: 0
   m_Name: Maze_Ghost
   m_TagString: Untagged
@@ -3271,6 +3272,8 @@ MonoBehaviour:
   isSlowed: 0
   slowDuration: 3
   attackDistance: 2
+  attackDamage: 15
+  attackHitTime: 0.35
   attackCooldown: 2.5
   anim: {fileID: 879416723}
   speedParameter: Speed
@@ -3336,6 +3339,26 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.9, y: 2, z: 0.9}
   m_Center: {x: 0, y: 1, z: 0}
+--- !u!114 &477783413
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 477783406}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eba25339d3c8f174f9f2755173c130cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FailSafeZero.Core.EnemyHealth
+  maxHealth: 100
+  defeatDuration: 0
+  showHealthBar: 1
+  hideWhenFull: 0
+  healthBarLabel: MAZE GHOST
+  onDefeated:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &498258857
 GameObject:
   m_ObjectHideFlags: 0
