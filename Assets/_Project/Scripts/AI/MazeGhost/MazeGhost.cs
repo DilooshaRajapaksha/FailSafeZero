@@ -87,6 +87,9 @@ public class MazeGhost : MonoBehaviour
     private IDamageable playerDamage;
     private float nextJumpTime;
     private float blockedTimer;
+    private float lastMoveDirection;
+    private float lastForwardDirection;
+    private bool locomotionActive;
 
     private void Awake()
     {
@@ -133,6 +136,7 @@ public class MazeGhost : MonoBehaviour
     {
         if (isDead)
         {
+            ResetLocomotion();
             SetAnimator(0f, 0f, 0f, false);
             return;
         }
@@ -154,54 +158,65 @@ public class MazeGhost : MonoBehaviour
         bool playerNearMaze = IsPlayerNearMaze();
         if (!chaseActivated && !playerNearMaze)
         {
+            agent.isStopped = false;
             if (agent.hasPath || agent.pathPending)
                 agent.ResetPath();
 
+            ResetLocomotion();
             SetAnimator(0f, 0f, 0f, false);
             blockedTimer = 0f;
             return;
         }
 
         chaseActivated = latchChase || playerNearMaze;
-        agent.SetDestination(player.position);
+
+        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+        bool holdPosition = distanceToPlayer <= agent.stoppingDistance + 0.05f;
+        agent.isStopped = holdPosition;
+        if (!holdPosition)
+            agent.SetDestination(player.position);
 
         // Read travel direction before turning so cornering uses the strafe clips.
         Vector3 planarVelocity = Vector3.ProjectOnPlane(agent.velocity, Vector3.up);
         float velocityMagnitude = planarVelocity.magnitude;
         float normalizedSpeed = Mathf.Clamp01(velocityMagnitude / Mathf.Max(0.01f, chaseSpeed));
 
-        float moveDirection = 0f;
-        float forwardDirection = 0f;
+        float moveDirection = lastMoveDirection;
+        float forwardDirection = lastForwardDirection;
         if (normalizedSpeed > moveThreshold && planarVelocity.sqrMagnitude > 0.0001f)
         {
             Vector3 moveDir = planarVelocity.normalized;
             float sideways = Vector3.Dot(moveDir, transform.right);
             float forward = Vector3.Dot(moveDir, transform.forward);
 
+            moveDirection = 0f;
+            forwardDirection = 0f;
             if (Mathf.Abs(sideways) >= strafeThreshold)
                 moveDirection = Mathf.Sign(sideways);
             else if (forward <= -backwardThreshold)
                 forwardDirection = -1f;
             else
                 forwardDirection = 1f;
+
+            lastMoveDirection = moveDirection;
+            lastForwardDirection = forwardDirection;
         }
 
         bool running = normalizedSpeed >= runThreshold && !isSlowed && !isJumping;
-        SetAnimator(normalizedSpeed, moveDirection, forwardDirection, running);
+        SetAnimator(GetLocomotionSpeed(normalizedSpeed), moveDirection, forwardDirection, running);
 
         CheckAttackImpact();
 
-        if (planarVelocity.sqrMagnitude > 0.01f)
+        if (normalizedSpeed > moveThreshold)
         {
             Quaternion targetRotation = Quaternion.LookRotation(planarVelocity.normalized, Vector3.up);
             transform.rotation = Quaternion.Slerp(
                 transform.rotation,
                 targetRotation,
-                turnSpeed * Time.deltaTime
+                Mathf.Clamp01(turnSpeed * Time.deltaTime)
             );
         }
 
-        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
         if (distanceToPlayer <= attackDistance)
             TriggerAttack();
 
@@ -215,7 +230,7 @@ public class MazeGhost : MonoBehaviour
 
         Vector3 aimPoint = player.position + Vector3.up * headAimHeight;
         Vector3 toPlayer = Vector3.ProjectOnPlane(aimPoint - headBone.position, Vector3.up);
-        if (toPlayer.sqrMagnitude < 0.0001f)
+        if (toPlayer.sqrMagnitude < 0.04f)
             return;
         toPlayer.Normalize();
 
@@ -233,10 +248,10 @@ public class MazeGhost : MonoBehaviour
         signedAngle = Mathf.Clamp(signedAngle, -headMaxAngle, headMaxAngle);
         float targetYaw = facePivot.localEulerAngles.y + signedAngle;
         Quaternion targetRotation = Quaternion.Euler(0f, targetYaw, 0f);
-        facePivot.localRotation = Quaternion.Slerp(
+        facePivot.localRotation = Quaternion.RotateTowards(
             facePivot.localRotation,
             targetRotation,
-            Mathf.Clamp01(headTurnSpeed * Time.deltaTime)
+            headTurnSpeed * Time.deltaTime
         );
     }
 
@@ -268,6 +283,26 @@ public class MazeGhost : MonoBehaviour
         {
             blockedTimer = 0f;
         }
+    }
+
+    private float GetLocomotionSpeed(float normalizedSpeed)
+    {
+        if (!locomotionActive && normalizedSpeed > moveThreshold)
+            locomotionActive = true;
+        else if (locomotionActive && normalizedSpeed < moveThreshold * 0.45f)
+            locomotionActive = false;
+
+        if (!locomotionActive)
+            return 0f;
+
+        return Mathf.Max(normalizedSpeed, moveThreshold * 1.5f);
+    }
+
+    private void ResetLocomotion()
+    {
+        locomotionActive = false;
+        lastMoveDirection = 0f;
+        lastForwardDirection = 0f;
     }
 
     private void SetAnimator(float speed, float direction, float forward, bool running)
@@ -358,6 +393,7 @@ public class MazeGhost : MonoBehaviour
 
         isDead = true;
         isJumping = false;
+        ResetLocomotion();
         CancelInvoke();
 
         if (agent != null)
@@ -374,6 +410,7 @@ public class MazeGhost : MonoBehaviour
 
         isDead = true;
         isJumping = false;
+        ResetLocomotion();
         CancelInvoke();
 
         if (agent != null)
