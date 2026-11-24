@@ -96,7 +96,10 @@ namespace FailSafeZero.Core
 
         void OnGUI()
         {
-            if (IsDead || !showHealthBar || (hideWhenFull && Current >= maxHealth) || Camera.main == null)
+            if (whiteTexture == null)
+                whiteTexture = Texture2D.whiteTexture;
+
+            if (IsDead || !showHealthBar || (hideWhenFull && Current >= maxHealth) || !IsVisibleToPlayer())
                 return;
 
             Vector3 screen = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.3f);
@@ -116,6 +119,34 @@ namespace FailSafeZero.Core
             GUI.color = previous;
 
             GUI.Label(new Rect(x, y - 18f, width, 18f), $"{healthBarLabel} {Current:0}/{maxHealth:0}");
+        }
+
+        bool IsVisibleToPlayer()
+        {
+            Camera cam = Camera.main;
+            if (cam == null)
+                return false;
+
+            Vector3 focus = transform.position + Vector3.up * 1f;
+            Vector3 viewport = cam.WorldToViewportPoint(focus);
+            if (viewport.z <= 0f || viewport.x < -0.05f || viewport.x > 1.05f ||
+                viewport.y < -0.05f || viewport.y > 1.05f)
+                return false;
+
+            Vector3 origin = cam.transform.position + cam.transform.forward * 0.3f;
+            Vector3 toFocus = focus - origin;
+            float distance = toFocus.magnitude;
+            if (distance < 0.01f)
+                return true;
+
+            if (Physics.Raycast(origin, toFocus / distance, out RaycastHit hit, distance,
+                                ~0, QueryTriggerInteraction.Ignore))
+            {
+                if (hit.transform != transform && !hit.transform.IsChildOf(transform))
+                    return false;
+            }
+
+            return true;
         }
     }
 }

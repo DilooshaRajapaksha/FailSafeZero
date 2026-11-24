@@ -4,10 +4,19 @@ using UnityEngine.SceneManagement;
 
 namespace FailSafeZero.Core
 {
+    /// <summary>
+    /// The player's life. Put it on the FirstPersonPlayer.
+    ///
+    /// - Takes damage from the Zombie's strikes, the Illusion Bot's bolts, and anything
+    ///   that uses IDamageable or SendMessage("TakeDamage", x).
+    /// - Shows a health bar, and the screen flashes red when hit.
+    /// - On death it shows "YOU DIED" and restarts the level after a short delay.
+    /// </summary>
     public class PlayerHealth : MonoBehaviour, IDamageable
     {
         [SerializeField, Min(1f)] float maxHealth = 100f;
         [SerializeField] float restartDelay = 2.5f;
+        [SerializeField] bool showHealthBar = true;
 
         static Texture2D whiteTexture;
 
@@ -16,6 +25,7 @@ namespace FailSafeZero.Core
         float deathTimer = -1f;
 
         public float Current => health;
+        public float MaxHealth => maxHealth;
         public bool IsDead => deathTimer >= 0f;
 
         void Awake()
@@ -43,6 +53,7 @@ namespace FailSafeZero.Core
             }
         }
 
+        /// <summary>Compatibility with SendMessage("TakeDamage", x).</summary>
         public void TakeDamage(float amount)
         {
             ReceiveHit(amount, transform.position, null);
@@ -68,6 +79,11 @@ namespace FailSafeZero.Core
 
         void OnGUI()
         {
+            if (whiteTexture == null)
+            {
+                whiteTexture = Texture2D.whiteTexture;
+            }
+
             // Red flash when hit.
             if (flashTimer > 0f || IsDead)
             {
@@ -78,13 +94,16 @@ namespace FailSafeZero.Core
             }
 
             // Health bar, bottom left.
-            float w = 220f;
-            var back = new Rect(20f, Screen.height - 40f, w, 18f);
-            GUI.Box(back, GUIContent.none);
-            GUI.color = Color.Lerp(Color.red, Color.green, health / maxHealth);
-            GUI.DrawTexture(new Rect(back.x + 2f, back.y + 2f, (w - 4f) * (health / maxHealth), 14f), whiteTexture);
-            GUI.color = Color.white;
-            GUI.Label(new Rect(back.x + 6f, back.y - 20f, w, 20f), $"HEALTH {health:0}/{maxHealth:0}");
+            if (showHealthBar)
+            {
+                float w = 220f;
+                var back = new Rect(20f, Screen.height - 40f, w, 18f);
+                GUI.Box(back, GUIContent.none);
+                GUI.color = Color.Lerp(Color.red, Color.green, health / maxHealth);
+                GUI.DrawTexture(new Rect(back.x + 2f, back.y + 2f, (w - 4f) * (health / maxHealth), 14f), whiteTexture);
+                GUI.color = Color.white;
+                GUI.Label(new Rect(back.x + 6f, back.y - 20f, w, 20f), $"HEALTH {health:0}/{maxHealth:0}");
+            }
 
             if (IsDead)
             {
