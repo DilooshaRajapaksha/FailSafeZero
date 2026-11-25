@@ -1,19 +1,22 @@
 using UnityEngine;
+using FailSafeZero.Interactions;
 
-/// <summary>
-/// First Person Controller - FPS viewpoint, WASD movement relative to camera look direction
-/// Mouse look controls direction, Space jumps
-/// Includes Crosshair UI for shooting mechanics
-/// </summary>
-public class FirstPersonController : MonoBehaviour
+
+[RequireComponent(typeof(CharacterController))]
+public class FirstPersonController : MonoBehaviour, IKnockbackable
 {
     [Header("Movement Settings")]
     public float walkSpeed = 3.0f;
     public float runSpeed = 6.0f;
+    [Tooltip("Upward speed at the moment of jumping (m/s).")]
     public float jumpForce = 5.0f;
+    [Tooltip("Downward acceleration. 2x real gravity feels snappier in games.")]
+    public float gravity = 19.62f;
+    [Tooltip("How quickly the player reaches full speed (higher = snappier).")]
+    public float acceleration = 12f;
 
     [Header("Mouse Look Settings")]
-    public float mouseSensitivity = 5.0f;  // ← INCREASED from 3.0f to 5.0f
+    public float mouseSensitivity = 5.0f;
     public float minimumX = -90.0f;
     public float maximumX = 90.0f;
 
@@ -23,35 +26,31 @@ public class FirstPersonController : MonoBehaviour
     public LayerMask groundMask = 1;
 
     [Header("Crosshair")]
-    public GameObject crosshair; // Drag your Crosshair UI here
+    public GameObject crosshair; 
 
-    private float _currentSpeed;
-    private float _rotationX = 0f; // Camera X rotation (pitch)
-    private float _rotationY = 0f; // Player Y rotation (yaw)
+    private float _rotationX;          
+    private float _rotationY;          
     private bool _isGrounded;
     private CharacterController _characterController;
     private Camera _playerCamera;
-    private Vector3 _moveDirection; // ← ADDED: Was missing, causing CS0103 error
+    private Vector3 _horizontalVelocity;
+    private float _verticalVelocity;
+    private Vector3 _externalVelocity;  
+
+    public float GravityScale { get; set; } = 1f;
+    public bool IsGrounded => _isGrounded;
+    public Vector3 Velocity => _horizontalVelocity + Vector3.up * _verticalVelocity + _externalVelocity;
 
     void Start()
     {
-        // Lock cursor to center
         Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
 
-        // Get or add CharacterController
         _characterController = GetComponent<CharacterController>();
-        if (_characterController == null)
-            _characterController = gameObject.AddComponent<CharacterController>();
+        _playerCamera = GetComponentInChildren<Camera>();
+        if (_playerCamera == null) _playerCamera = Camera.main;
+        _rotationY = transform.eulerAngles.y;
 
-        // Get main camera
-        _playerCamera = Camera.main;
-        if (_playerCamera == null)
-        {
-            // Try to find camera attached to this object or in scene
-            _playerCamera = Camera.main;
-        }
-
-        // Set up ground check if not assigned
         if (groundCheck == null)
         {
             GameObject gc = new GameObject("GroundCheck");
@@ -63,86 +62,70 @@ public class FirstPersonController : MonoBehaviour
 
     void Update()
     {
-        // Ground check
-        _isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+        _isGrounded = _characterController.isGrounded ||
+                      Physics.CheckSphere(groundCheck.position, groundDistance, groundMask, QueryTriggerInteraction.Ignore);
 
-        // --- MOUSE LOOK (First Person) ---
-        // INCREASED sensitivity: mouseSensitivity = 5.0f now
+        Look();
+        Move();
+
+        if (crosshair != null)
+        {
+            RectTransform rt = crosshair.GetComponent<RectTransform>();
+            if (rt != null) rt.anchoredPosition = Vector2.zero;
+        }
+    }
+
+    void Look()
+    {
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
 
-        // Rotate player (Y axis) and camera (X axis / pitch)
         _rotationY += mouseX;
-        _rotationY = Mathf.Clamp(_rotationY, -360f, 360f);
+        _rotationX = Mathf.Clamp(_rotationX - mouseY, minimumX, maximumX);
 
-        _rotationX -= mouseY;
-        _rotationX = Mathf.Clamp(_rotationX, minimumX, maximumX);
-
-        // Apply player rotation (Y axis only - yaw)
         transform.localRotation = Quaternion.Euler(0f, _rotationY, 0f);
-
-        // Apply camera rotation (X axis / pitch) - IF we have a camera to modify
         if (_playerCamera != null)
-        {
             _playerCamera.transform.localRotation = Quaternion.Euler(_rotationX, 0f, 0f);
-        }
-
-        // --- CROSSHAIR VISIBILITY ---
-        if (crosshair != null)
-        {
-            // Position crosshair at screen center
-            RectTransform rt = crosshair.GetComponent<RectTransform>();
-            if (rt != null)
-            {
-                rt.anchoredPosition = Vector2.zero;
-            }
-        }
-
-        // --- MOVEMENT INPUT ---
-        // Get movement input
-        bool isRunning = Input.GetKey(KeyCode.LeftShift);
-        _currentSpeed = isRunning ? runSpeed : walkSpeed;
-
-        // Get WASD input - move relative to camera direction
-        float moveX = Input.GetAxis("Horizontal");
-        float moveZ = Input.GetAxis("Vertical");
-
-        // Calculate move direction relative to camera
-        // If we have a camera, use its forward/right; otherwise use player's
-        Vector3 moveDir;
-        if (_playerCamera != null)
-        {
-            // Get forward and right directions from camera, but remove Y component so player stays grounded
-            Vector3 camForward = Vector3.Scale(_playerCamera.transform.forward, new Vector3(1, 0, 1)).normalized;
-            Vector3 camRight = Vector3.Scale(_playerCamera.transform.right, new Vector3(1, 0, 1)).normalized;
-            moveDir = camForward * moveZ + camRight * moveX;
-        }
-        else
-        {
-            // Fallback: move relative to player's own rotation
-            moveDir = transform.forward * moveZ + transform.right * moveX;
-        }
-
-        // Apply movement
-        _moveDirection = moveDir * _currentSpeed;
-
-        // Jumping
-        if (_isGrounded && Input.GetKeyDown(KeyCode.Space))
-        {
-            _moveDirection.y = jumpForce;
-        }
-
-        // Apply gravity when not grounded
-        if (!_isGrounded)
-        {
-            _moveDirection.y -= 9.81f * Time.deltaTime * 2f;
-        }
-
-        // Final movement
-        _characterController.Move(_moveDirection * Time.deltaTime);
     }
 
-    // Draw ground check radius in Scene view
+    void Move()
+    {
+        // 1. Horizontal: input relative to where the body faces, smoothed for a natural start/stop.
+        float speed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : walkSpeed;
+        Vector3 input = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
+        input = Vector3.ClampMagnitude(input, 1f);                       // no faster diagonals
+        Vector3 target = transform.TransformDirection(input) * speed;
+        _horizontalVelocity = Vector3.Lerp(_horizontalVelocity, target, acceleration * Time.deltaTime);
+
+        // 2. Vertical: our own gravity, scaled by the Gravity bot when it messes with us.
+        if (_isGrounded && _verticalVelocity < 0f && GravityScale > 0f)
+            _verticalVelocity = -2f;                                       // small push keeps us glued to slopes
+
+        if (_isGrounded && GravityScale > 0f && Input.GetKeyDown(KeyCode.Space))
+            _verticalVelocity = jumpForce;
+
+        _verticalVelocity -= gravity * GravityScale * Time.deltaTime;
+        _verticalVelocity = Mathf.Clamp(_verticalVelocity, -40f, 15f);    // terminal velocity
+
+        _externalVelocity = Vector3.Lerp(_externalVelocity, Vector3.zero, 3f * Time.deltaTime);
+
+        CollisionFlags flags = _characterController.Move(
+            (_horizontalVelocity + Vector3.up * _verticalVelocity + _externalVelocity) * Time.deltaTime);
+
+        if ((flags & CollisionFlags.Above) != 0 && _verticalVelocity > 0f) _verticalVelocity = 0f;
+    }
+
+    public void ApplyKnockback(Vector3 velocity)
+    {
+        _externalVelocity += new Vector3(velocity.x, 0f, velocity.z);
+        _verticalVelocity = Mathf.Max(_verticalVelocity, velocity.y);
+    }
+
+    public void AddPull(Vector3 accelerationPerSecond)
+    {
+        _externalVelocity += accelerationPerSecond * Time.deltaTime;
+    }
+
     private void OnDrawGizmosSelected()
     {
         if (groundCheck == null) return;
