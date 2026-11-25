@@ -12,6 +12,8 @@ GameObject:
   - component: {fileID: 7557406992531154031}
   - component: {fileID: 7480902020633504770}
   - component: {fileID: 8157019802441375775}
+  - component: {fileID: 1021675016232972111}
+  - component: {fileID: 3531518343976354343}
   m_Layer: 0
   m_Name: Camera
   m_TagString: MainCamera
@@ -138,6 +140,42 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &1021675016232972111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 24151446275069539}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 335b68ddfcdad65419ab3e4760df3f81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FailSafeZero.Interactions.PickupThrow
+  reach: 3
+  holdDistance: 1.8
+  followStrength: 15
+  maxFollowSpeed: 12
+  throwSpeed: 15
+  breakDistance: 3
+  grabKey: 101
+--- !u!114 &3531518343976354343
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 24151446275069539}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f7244262a88ee74eb03628733e2e150, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FailSafeZero.Interactions.PlayerInteractor
+  reach: 3
+  interactKey: 101
+  interactMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!1 &4922890024554711273
 GameObject:
   m_ObjectHideFlags: 0
@@ -153,6 +191,7 @@ GameObject:
   - component: {fileID: 1823108518353756911}
   - component: {fileID: 3676678707835890274}
   - component: {fileID: 8309557756336415435}
+  - component: {fileID: 3878960603470301190}
   m_Layer: 0
   m_Name: FirstPersonPlayer
   m_TagString: Player
@@ -273,6 +312,8 @@ MonoBehaviour:
   walkSpeed: 3
   runSpeed: 6
   jumpForce: 5
+  gravity: 19.62
+  acceleration: 12
   mouseSensitivity: 5
   minimumX: -90
   maximumX: 90
@@ -313,6 +354,19 @@ MonoBehaviour:
   barWidth: 220
   marginLeft: 20
   marginBottom: 40
+--- !u!114 &3878960603470301190
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4922890024554711273}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecaeca29cc1f5b345b418c6eb061a4cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FailSafeZero.Interactions.PlayerPusher
+  lightPushStrength: 1.5
 --- !u!1001 &1155826796584339156
 PrefabInstance:
   m_ObjectHideFlags: 0
