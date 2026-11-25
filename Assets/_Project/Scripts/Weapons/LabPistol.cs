@@ -82,6 +82,8 @@ namespace FailSafeZero.Weapons
         float reloadTimer;
         int ammo;
         float hitMarkerTimer;  // > 0 while the cross shows the "you hit something" colour
+        const int MaxWallHits = 64;
+        static readonly RaycastHit[] wallHits = new RaycastHit[MaxWallHits];
         float spread;          // 0..1, the cross opens up after each shot and closes again
 
         public string LastHitText { get; private set; } = "";
@@ -242,13 +244,24 @@ namespace FailSafeZero.Weapons
             }
 
             // WALL AVOIDANCE: a thin sphere-cast "feels" ahead of the camera.
-            // closeness = 0 when nothing is within reach, 1 when the wall is touching the camera.
+            // Enemies and the player are not walls - standing close to the Maze Ghost
+            // must not pull the gun behind the camera or block shooting.
             float target = 0f;
-            if (aimCamera != null &&
-                Physics.SphereCast(aimCamera.transform.position, 0.05f, aimCamera.transform.forward,
-                                   out RaycastHit wallHit, wallCheckDistance, ~0, QueryTriggerInteraction.Ignore))
+            if (aimCamera != null)
             {
-                target = 1f - Mathf.Clamp01(wallHit.distance / wallCheckDistance);
+                int hitCount = Physics.SphereCastNonAlloc(
+                    aimCamera.transform.position, 0.05f, aimCamera.transform.forward,
+                    wallHits, wallCheckDistance, ~0, QueryTriggerInteraction.Ignore);
+
+                float nearestWall = wallCheckDistance;
+                for (int i = 0; i < hitCount; i++)
+                {
+                    if (ShouldIgnoreForWallAvoidance(wallHits[i].collider)) continue;
+                    if (wallHits[i].distance < nearestWall) nearestWall = wallHits[i].distance;
+                }
+
+                if (nearestWall < wallCheckDistance)
+                    target = 1f - Mathf.Clamp01(nearestWall / wallCheckDistance);
             }
             // Ease towards the target so the gun moves smoothly, never snaps.
             wallBlend = Mathf.Lerp(wallBlend, target, 1f - Mathf.Exp(-wallBlendSpeed * dt));
@@ -258,6 +271,26 @@ namespace FailSafeZero.Weapons
             transform.localPosition = restPosition + offset;
             float pitch = -recoilKickUpDegrees * kick + 35f * reloadDip + wallLowerDegrees * wallBlend;
             transform.localRotation = restRotation * Quaternion.Euler(pitch, 0f, 0f);
+        }
+
+        /// <summary>Enemies and the player's own body must not count as walls for the gun.</summary>
+        bool ShouldIgnoreForWallAvoidance(Collider collider)
+        {
+            if (collider == null) return true;
+
+            // The camera is a child of the player, so ignore the player's own colliders.
+            if (collider.transform.root == transform.root) return true;
+
+            // Anything damageable is an enemy (Maze Ghost, Zombie, Illusion Bot...), not level geometry.
+            if (collider.GetComponentInParent<IDamageable>() != null) return true;
+
+            // Legacy maze bots may not implement IDamageable but still should not act as walls.
+            if (collider.GetComponentInParent<MazeGhost>() != null ||
+                collider.GetComponentInParent<MazeGhostChaser>() != null ||
+                collider.GetComponentInParent<MazeGhostController>() != null)
+                return true;
+
+            return false;
         }
 
         /// <summary>True while the gun is pressed against a wall (it cannot fire into the wall).</summary>
