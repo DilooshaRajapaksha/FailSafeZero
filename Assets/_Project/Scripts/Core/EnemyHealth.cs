@@ -16,6 +16,8 @@ namespace FailSafeZero.Core
 
         public UnityEvent onDefeated = new UnityEvent();
 
+        static GUIStyle hpTextStyle;
+        static GUIStyle hpTextShadowStyle;
         static Texture2D whiteTexture;
 
         public float MaxHealth => maxHealth;
@@ -102,24 +104,55 @@ namespace FailSafeZero.Core
             if (IsDead || !showHealthBar || (hideWhenFull && Current >= maxHealth) || !IsVisibleToPlayer())
                 return;
 
+            EnsureHpStyles();
+
             Vector3 screen = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2.3f);
             if (screen.z <= 0f)
                 return;
 
-            float width = 110f;
+            float width = 140f;
+            float barHeight = 16f;
             float x = screen.x - width * 0.5f;
             float y = Screen.height - screen.y;
             float fill = Mathf.Clamp01(Health01);
 
-            GUI.Box(new Rect(x, y, width, 10f), GUIContent.none);
+            GUI.Box(new Rect(x, y, width, barHeight), GUIContent.none);
 
             Color previous = GUI.color;
             GUI.color = Color.Lerp(Color.red, Color.green, fill);
-            GUI.DrawTexture(new Rect(x + 2f, y + 2f, (width - 4f) * fill, 6f), whiteTexture);
+            GUI.DrawTexture(new Rect(x + 2f, y + 2f, (width - 4f) * fill, barHeight - 4f), whiteTexture);
             GUI.color = previous;
 
-            GUI.Label(new Rect(x, y - 18f, width, 18f), $"{healthBarLabel} {Current:0}/{maxHealth:0}");
+            // Current / maximum HP drawn on top of the bar so it stays readable.
+            string hpText = string.Format("{0:0}/{1:0}", Current, maxHealth);
+            Rect hpRect = new Rect(x, y, width, barHeight);
+            GUI.Label(new Rect(hpRect.x + 1f, hpRect.y + 1f, hpRect.width, hpRect.height), hpText, hpTextShadowStyle);
+            GUI.Label(hpRect, hpText, hpTextStyle);
+
+            // Enemy name above the bar, also outlined so it is visible in dark scenes.
+            if (!string.IsNullOrEmpty(healthBarLabel))
+            {
+                Rect nameRect = new Rect(x - 10f, y - 22f, width + 20f, 18f);
+                GUI.Label(new Rect(nameRect.x + 1f, nameRect.y + 1f, nameRect.width, nameRect.height), healthBarLabel, hpTextShadowStyle);
+                GUI.Label(nameRect, healthBarLabel, hpTextStyle);
+            }
         }
+
+        static void EnsureHpStyles()
+        {
+            if (hpTextStyle != null)
+                return;
+
+            hpTextStyle = new GUIStyle(GUI.skin.label);
+            hpTextStyle.alignment = TextAnchor.MiddleCenter;
+            hpTextStyle.fontStyle = FontStyle.Bold;
+            hpTextStyle.fontSize = 12;
+            hpTextStyle.normal.textColor = Color.white;
+
+            hpTextShadowStyle = new GUIStyle(hpTextStyle);
+            hpTextShadowStyle.normal.textColor = new Color(0f, 0f, 0f, 0.85f);
+        }
+
 
         bool IsVisibleToPlayer()
         {
