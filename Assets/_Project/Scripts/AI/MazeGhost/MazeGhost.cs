@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using FailSafeZero.AI.Illusion;
 using FailSafeZero.AI.Illusion;
 using UnityEngine;
 using UnityEngine.AI;
@@ -81,6 +83,21 @@ public class MazeGhost : MonoBehaviour
 
     [Header("Navigation")]
     private NavMeshAgent agent;
+
+    [Header("Hand-coded A* Pathfinding")]
+    public MazeGhostAStar aStar;
+    public bool useHandCodedAStar = true;
+    [Range(1f, 2f)] public float aStarHeuristicWeight = 1f;
+    public float aStarRepathInterval = 0.4f;
+    public float aStarRepathDistance = 1.0f;
+    public float aStarWaypointReachDistance = 0.6f;
+    private List<Vector3> aStarPath;
+    private int aStarWaypointIndex;
+    private float nextAStarRepathTime;
+    private Vector3 lastAStarTarget;
+    private Vector3 activeAStarWaypoint;
+    private bool hasAStarWaypoint;
+    private float originalStoppingDistance;
     private bool chaseActivated;
     private bool isJumping;
     private bool isDead;
@@ -98,7 +115,8 @@ public class MazeGhost : MonoBehaviour
             agent = gameObject.AddComponent<NavMeshAgent>();
 
         agent.speed = chaseSpeed;
-        agent.stoppingDistance = stoppingDistance;
+        originalStoppingDistance = stoppingDistance;
+        agent.stoppingDistance = useHandCodedAStar ? 0f : originalStoppingDistance;
         agent.updateRotation = false;
 
         speedHash = Animator.StringToHash(speedParameter);
@@ -129,6 +147,17 @@ public class MazeGhost : MonoBehaviour
             GameObject mazeFloor = GameObject.Find("Maze_floor");
             if (mazeFloor != null)
                 mazeBounds = mazeFloor.GetComponent<Collider>();
+        }
+
+        if (useHandCodedAStar)
+        {
+            if (aStar == null)
+                aStar = GetComponent<MazeGhostAStar>();
+            if (aStar == null)
+                aStar = gameObject.AddComponent<MazeGhostAStar>();
+
+            aStar.Configure(mazeBounds, transform);
+            aStar.heuristicWeight = aStarHeuristicWeight;
         }
     }
 
@@ -162,6 +191,7 @@ public class MazeGhost : MonoBehaviour
             if (agent.hasPath || agent.pathPending)
                 agent.ResetPath();
 
+            ResetAStarPath();
             ResetLocomotion();
             SetAnimator(0f, 0f, 0f, false);
             blockedTimer = 0f;
@@ -171,10 +201,26 @@ public class MazeGhost : MonoBehaviour
         chaseActivated = latchChase || playerNearMaze;
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-        bool holdPosition = distanceToPlayer <= agent.stoppingDistance + 0.05f;
+        float effectiveStoppingDistance = useHandCodedAStar && aStar != null
+            ? stoppingDistance
+            : agent.stoppingDistance;
+
+        bool holdPosition = distanceToPlayer <= effectiveStoppingDistance + 0.05f;
         agent.isStopped = holdPosition;
-        if (!holdPosition)
-            agent.SetDestination(player.position);
+
+        if (holdPosition)
+        {
+            if (agent.hasPath || agent.pathPending)
+                agent.ResetPath();
+            ResetAStarPath();
+        }
+        else
+        {
+            // Hand-coded A* chooses the route; NavMeshAgent only follows local waypoints.
+            bool followedAStar = FollowHandCodedAStarPath(player.position);
+            if (!followedAStar)
+                agent.SetDestination(player.position);
+        }
 
         // Read travel direction before turning so cornering uses the strafe clips.
         Vector3 planarVelocity = Vector3.ProjectOnPlane(agent.velocity, Vector3.up);
@@ -222,6 +268,69 @@ public class MazeGhost : MonoBehaviour
 
         UpdateJumpTriggers(distanceToPlayer, velocityMagnitude);
     }
+
+    private bool FollowHandCodedAStarPath(Vector3 target)
+    {
+        if (!useHandCodedAStar || aStar == null)
+            return false;
+
+        if (!agent.isOnNavMesh)
+            return true;
+
+        aStar.seeker = transform;
+        if (aStar.mazeBounds != mazeBounds)
+            aStar.Configure(mazeBounds, transform);
+
+        bool targetMovedEnough = Vector3.Distance(target, lastAStarTarget) > aStarRepathDistance;
+        bool needRepath = aStarPath == null ||
+                          aStarWaypointIndex >= aStarPath.Count ||
+                          Time.time >= nextAStarRepathTime ||
+                          targetMovedEnough;
+
+        if (needRepath)
+        {
+            List<Vector3> newPath = aStar.FindPath(transform.position, target);
+            if (newPath == null || newPath.Count == 0)
+            {
+                ResetAStarPath();
+                return false;
+            }
+
+            aStarPath = newPath;
+            aStarWaypointIndex = 0;
+            lastAStarTarget = target;
+            nextAStarRepathTime = Time.time + aStarRepathInterval;
+            hasAStarWaypoint = false;
+        }
+
+        while (aStarWaypointIndex < aStarPath.Count - 1 &&
+               Vector3.Distance(transform.position, aStarPath[aStarWaypointIndex]) <= aStarWaypointReachDistance)
+        {
+            aStarWaypointIndex++;
+        }
+
+        Vector3 waypoint = aStarPath[aStarWaypointIndex];
+        if (!hasAStarWaypoint || Vector3.Distance(activeAStarWaypoint, waypoint) > 0.01f)
+        {
+            agent.isStopped = false;
+            agent.SetDestination(waypoint);
+            activeAStarWaypoint = waypoint;
+            hasAStarWaypoint = true;
+        }
+
+        return true;
+    }
+
+    private void ResetAStarPath()
+    {
+        aStarPath = null;
+        aStarWaypointIndex = 0;
+        nextAStarRepathTime = 0f;
+        lastAStarTarget = Vector3.zero;
+        activeAStarWaypoint = Vector3.zero;
+        hasAStarWaypoint = false;
+    }
+
 
     private void LateUpdate()
     {
@@ -394,6 +503,7 @@ public class MazeGhost : MonoBehaviour
         isDead = true;
         isJumping = false;
         ResetLocomotion();
+        ResetAStarPath();
         CancelInvoke();
 
         if (agent != null)
@@ -411,6 +521,7 @@ public class MazeGhost : MonoBehaviour
         isDead = true;
         isJumping = false;
         ResetLocomotion();
+        ResetAStarPath();
         CancelInvoke();
 
         if (agent != null)
