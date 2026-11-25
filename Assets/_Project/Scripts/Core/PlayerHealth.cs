@@ -1,3 +1,4 @@
+using FailSafeZero.Weapons;
 using FailSafeZero.AI.Illusion;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -18,12 +19,22 @@ namespace FailSafeZero.Core
         [SerializeField] float restartDelay = 2.5f;
         [SerializeField] bool showHealthBar = true;
 
+        [Header("Death animation")]
+        [SerializeField] float deathAnimationDuration = 0.9f;
+        [SerializeField] float deathCameraDrop = 1.4f;
+        [SerializeField] float deathCameraPitch = 15f;
+        [SerializeField] float deathCameraRoll = 75f;
         static Texture2D whiteTexture;
 
         float health;
         float flashTimer;
         float deathTimer = -1f;
 
+        Camera deathCamera;
+        Vector3 deathStartPosition;
+        Quaternion deathStartRotation;
+        bool deathAnimating;
+        float deathAnimationTime;
         public float Current => health;
         public float MaxHealth => maxHealth;
         public bool IsDead => deathTimer >= 0f;
@@ -31,6 +42,7 @@ namespace FailSafeZero.Core
         void Awake()
         {
             health = maxHealth;
+            deathCamera = Camera.main;
             if (whiteTexture == null)
             {
                 whiteTexture = Texture2D.whiteTexture;
@@ -49,7 +61,7 @@ namespace FailSafeZero.Core
 
             if (health <= 0f)
             {
-                deathTimer = restartDelay;
+                StartDeath();
             }
         }
 
@@ -59,11 +71,60 @@ namespace FailSafeZero.Core
             ReceiveHit(amount, transform.position, null);
         }
 
+        /// <summary>Freeze gameplay and play a short first-person fall when the player dies.</summary>
+        void StartDeath()
+        {
+            deathTimer = restartDelay;
+            deathAnimating = true;
+            deathAnimationTime = 0f;
+
+            if (deathCamera != null)
+            {
+                deathStartPosition = deathCamera.transform.localPosition;
+                deathStartRotation = deathCamera.transform.localRotation;
+            }
+
+            FirstPersonController controller = GetComponent<FirstPersonController>();
+            if (controller != null) controller.enabled = false;
+
+            LabPistol pistol = GetComponentInChildren<LabPistol>(true);
+            if (pistol != null)
+            {
+                pistol.enabled = false;
+                pistol.gameObject.SetActive(false);
+            }
+
+            CharacterController characterController = GetComponent<CharacterController>();
+            if (characterController != null) characterController.enabled = false;
+
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
+        /// <summary>Drop the camera and roll it to the side, like the player collapsing.</summary>
+        void UpdateDeathAnimation(float dt)
+        {
+            deathAnimationTime += dt;
+            float t = Mathf.Clamp01(deathAnimationTime / Mathf.Max(0.01f, deathAnimationDuration));
+            float eased = t * t * (3f - 2f * t);
+
+            if (deathCamera == null) return;
+
+            deathCamera.transform.localPosition = deathStartPosition + Vector3.down * deathCameraDrop * eased;
+            deathCamera.transform.localRotation = deathStartRotation *
+                Quaternion.Euler(deathCameraPitch * eased, 0f, deathCameraRoll * eased);
+        }
+
         void Update()
         {
             if (flashTimer > 0f)
             {
                 flashTimer -= Time.deltaTime;
+            }
+
+            if (deathAnimating)
+            {
+                UpdateDeathAnimation(Time.deltaTime);
             }
 
             if (deathTimer >= 0f)
